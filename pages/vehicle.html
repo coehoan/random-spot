@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>랜덤 교통수단 뽑기</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
+            crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="page">
+    <div id="toast" class="toast"></div>
+    <section class="card">
+        <div style="display:flex; justify-content:flex-start; margin-bottom: 12px;">
+            <button id="goMainBtn" class="secondary-btn" style="padding:6px 12px; font-size:12px;">
+                🏠 메인으로
+            </button>
+        </div>
+
+        <h1 class="title">랜덤 교통수단 뽑기</h1>
+        <p class="subtitle">버스 · 지하철 · 방향 · 환승까지 전부 랜덤으로 정해보세요.</p>
+
+        <button id="startBtn">시작하기</button>
+
+        <!-- 말풍선 영역 -->
+        <div class="bubble-wrap">
+            <div id="bubble" class="bubble"></div>
+        </div>
+
+        <!-- 결과 관련 버튼들 -->
+        <div class="actions" id="actions">
+            <button id="saveImgBtn" class="secondary-btn">
+                <span class="icon">🖼️</span>
+                결과 이미지로 저장
+            </button>
+            <button id="shareBtn" class="secondary-btn">
+                <span class="icon">📤</span>
+                결과 공유하기
+            </button>
+        </div>
+    </section>
+</div>
+
+<script>
+    const startBtn = document.getElementById("startBtn");
+    const bubble = document.getElementById("bubble");
+    const actions = document.getElementById("actions");
+    const saveImgBtn = document.getElementById("saveImgBtn");
+    const shareBtn = document.getElementById("shareBtn");
+    const toast = document.getElementById("toast");
+
+    let hasStarted = false;
+
+    // 랜덤 결과 데이터 생성
+    function generateTripData() {
+        const transports = ["버스", "지하철"];
+        const directions = ["상행", "하행"];
+
+        const transport = transports[Math.floor(Math.random() * transports.length)];
+        const direction = directions[Math.floor(Math.random() * directions.length)];
+        const transferCount = Math.floor(Math.random() * 3); // 0~2
+
+        const data = {
+            transport,
+            direction,
+            transferCount,
+            busOrder: null,
+            sections: [],
+            firstTransferSection: null,
+            lastSectionStations: null
+        };
+
+        if (transport === "버스") {
+            data.busOrder = Math.floor(Math.random() * 3) + 1; // 1~3
+
+            if (transferCount === 0) {
+                data.sections.push(Math.floor(Math.random() * 25) + 1); // 1~25
+            } else {
+                for (let i = 0; i <= transferCount; i++) {
+                    data.sections.push(Math.floor(Math.random() * 15) + 1); // 1~15
+                }
+            }
+        } else { // 지하철
+            if (transferCount === 0) {
+                data.lastSectionStations = Math.floor(Math.random() * 25) + 1; // 1~25
+            } else {
+                data.firstTransferSection = Math.floor(Math.random() * 3) + 1; // 1~3
+                data.lastSectionStations = Math.floor(Math.random() * 15) + 1; // 1~15
+            }
+        }
+
+        return data;
+    }
+
+    // 데이터 → 문구 HTML
+    function buildResultText(data) {
+        let text = `오늘은 <strong>${data.transport}</strong> <strong>${data.direction}</strong>을 타고 `;
+
+        if (data.transport === "버스") {
+            text += `정류장에서 <strong>${data.busOrder}</strong>번째로 오는 버스를 타서 `;
+
+            if (data.transferCount === 0) {
+                text += `<strong>${data.sections[0]}</strong>정거장을 이동합니다.`;
+            } else {
+                const parts = data.sections.map((v, i) =>
+                    `${i + 1}구간 <strong>${v}</strong>정거장`
+                );
+                text += parts.join(", ") + "을 이동합니다.";
+            }
+        } else { // 지하철
+            if (data.transferCount === 0) {
+                text += `<strong>환승 없이</strong> <strong>${data.lastSectionStations}</strong>정거장을 이동합니다.`;
+            } else {
+                text += `총 <strong>${data.transferCount}</strong>번 환승하고, `;
+                text += `첫 환승은 <strong>${data.firstTransferSection}</strong>번째 구간에서! `;
+                text += `마지막엔 <strong>${data.lastSectionStations}</strong>정거장을 더 갑니다.`;
+            }
+        }
+
+        return text + `<small>※ 실제 노선과는 무관한 랜덤 결과입니다.</small>`;
+    }
+
+    // 데이터 → 공유용 URL (현재 주소 + 파라미터만 추가)
+    function buildShareUrl(data) {
+        const encoded = encodeURIComponent(JSON.stringify(data));
+        return `${window.location.origin}${window.location.pathname}?result=${encoded}`;
+    }
+
+    // URL에서 result 파라미터 읽어오기 (공유로 바로 들어온 경우용)
+    function parseResultFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const encoded = params.get("result");
+        if (!encoded) return null;
+
+        try {
+            return JSON.parse(decodeURIComponent(encoded));
+        } catch (e) {
+            return null;
+        }
+    }
+
+    // 토스트 팝업 노출
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2000);
+    }
+
+    // 결과 뿌리는 공통 함수 (주소창은 건드리지 않음)
+    function showResult(data) {
+        const resultHtml = buildResultText(data);
+        bubble.classList.remove("show");
+
+        setTimeout(() => {
+            bubble.innerHTML = resultHtml;
+            bubble.classList.add("show");
+        }, 80);
+
+        const shareUrl = buildShareUrl(data);
+        shareBtn.dataset.url = shareUrl;
+    }
+
+    // 시작 / 다시하기 버튼
+    startBtn.addEventListener("click", () => {
+        if (!hasStarted) {
+            startBtn.textContent = "다시하기";
+            actions.style.display = "flex";
+            hasStarted = true;
+        }
+
+        const data = generateTripData();
+        showResult(data);
+    });
+
+    // 이미지 저장
+    saveImgBtn.addEventListener("click", () => {
+        if (!bubble.classList.contains("show")) return;
+
+        html2canvas(bubble, {
+            backgroundColor: null,
+            scale: 2
+        }).then(canvas => {
+            const link = document.createElement("a");
+            link.download = "today-trip.png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        }).catch(() => {
+            alert("이미지 저장 중 오류가 발생했어요.");
+        });
+    });
+
+    // 결과 공유: 지금 결과가 반영된 URL만 클립보드에 복사 (주소창은 그대로)
+    shareBtn.addEventListener("click", async () => {
+        const urlToCopy = shareBtn.dataset.url || `${window.location.origin}${window.location.pathname}`;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(urlToCopy);
+                showToast("링크 복사 완료! 친구한테 바로 보내세요 ✨");
+            } catch {
+                showToast("복사에 실패했어요 😢");
+            }
+        } else {
+            showToast("이 브라우저에서는 자동 복사가 안 돼요 😭");
+        }
+    });
+
+    // 공유 URL로 바로 들어온 경우: 결과 자동 복원
+    window.addEventListener("load", () => {
+        const data = parseResultFromUrl();
+        if (!data) return;
+
+        actions.style.display = "flex";
+        startBtn.textContent = "다시하기";
+        hasStarted = true;
+
+        showResult(data);
+
+        const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+        window.history.replaceState({}, "", cleanUrl);
+    });
+
+    // 메인 페이지 이동
+    document.getElementById("goMainBtn").addEventListener("click", () => {
+        window.location.href = "../index.html";
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>랜덤 사이트</title>
+
+    <link rel="stylesheet" href="static/css/style.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
+            crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="page">
+    <section class="card">
+        <h1 class="title">오늘의 랜덤 나들이</h1>
+        <p class="subtitle">아래에서 원하는 랜덤 기능을 선택하세요.</p>
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 1rem;">
+            <!-- ✅ 랜덤 교통수단 -->
+            <button id="vehicleBtn" class="secondary-btn" style="font-size: 15px;">
+                🚌 랜덤 교통수단
+            </button>
+
+            <!-- ✅ 랜덤 여행지역 -->
+            <button id="regionBtn" class="secondary-btn" style="font-size: 15px;">
+                📍 랜덤 여행지역
+            </button>
+        </div>
+    </section>
+</div>
+
+<script>
+    document.getElementById("vehicleBtn").addEventListener("click", () => {
+        window.location.href = "/pages/vehicle.html";
+    });
+
+    document.getElementById("regionBtn").addEventListener("click", () => {
+        window.location.href = "/pages/region.html";
+    });
+</script>
+
+</body>
+</html>
