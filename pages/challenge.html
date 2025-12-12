@@ -20,8 +20,8 @@
             </button>
         </div>
 
-        <h1 class="title">랜덤 교통수단 뽑기</h1>
-        <p class="subtitle">버스 · 지하철 · 방향 · 환승까지 전부 랜덤으로 정해보세요.</p>
+        <h1 class="title">랜덤 챌린지</h1>
+        <p class="subtitle">오늘의 챌린지를 뽑아보세요!</p>
 
         <button id="startBtn">시작하기</button>
 
@@ -57,74 +57,35 @@
     const toast = document.getElementById("toast");
 
     let hasStarted = false;
+    let challenge = [];
+    let isJsonLoaded = false;
 
-    // 랜덤 결과 데이터 생성
-    function generateTripData() {
-        const transports = ["버스", "지하철"];
-        const directions = ["상행", "하행"];
+    // 처음에는 버튼 비활성화
+    startBtn.disabled = true;
+    startBtn.textContent = "데이터 불러오는 중...";
 
-        const transport = transports[Math.floor(Math.random() * transports.length)];
-        const direction = directions[Math.floor(Math.random() * directions.length)];
-        const transferCount = Math.floor(Math.random() * 3); // 0~2
+    // json 파일 fetch 로드
+    async function loadJson() {
+        try {
+            const response = await fetch("../static/files/challenge.json");
+            challenge = await response.json();
+            isJsonLoaded = true;
 
-        const data = {
-            transport,
-            direction,
-            transferCount,
-            busOrder: null,
-            sections: [],
-            firstTransferSection: null,
-            lastSectionStations: null
-        };
-
-        if (transport === "버스") {
-            data.busOrder = Math.floor(Math.random() * 3) + 1; // 1~3
-
-            if (transferCount === 0) {
-                data.sections.push(Math.floor(Math.random() * 25) + 1); // 1~25
-            } else {
-                for (let i = 0; i <= transferCount; i++) {
-                    data.sections.push(Math.floor(Math.random() * 15) + 1); // 1~15
-                }
-            }
-        } else { // 지하철
-            if (transferCount === 0) {
-                data.lastSectionStations = Math.floor(Math.random() * 25) + 1; // 1~25
-            } else {
-                data.firstTransferSection = Math.floor(Math.random() * 3) + 1; // 1~3
-                data.lastSectionStations = Math.floor(Math.random() * 15) + 1; // 1~15
-            }
+            // 버튼 활성화
+            startBtn.disabled = false;
+            startBtn.textContent = hasStarted ? "다시하기" : "시작하기";
+        } catch (e) {
+            console.error(e);
+            isJsonLoaded = false;
+            startBtn.disabled = true;
+            startBtn.textContent = "로드 실패";
+            alert("JSON 파일을 불러오지 못했습니다.");
         }
-
-        return data;
     }
 
-    // 데이터 → 문구 HTML
-    function buildResultText(data) {
-        let text = `오늘은 <strong>${data.transport}</strong> <strong>${data.direction}</strong>을 타고 `;
-
-        if (data.transport === "버스") {
-            text += `정류장에서 <strong>${data.busOrder}</strong>번째로 오는 버스를 타서 `;
-
-            if (data.transferCount === 0) {
-                text += `<strong>${data.sections[0]}</strong>정거장을 이동합니다.`;
-            } else {
-                const parts = data.sections.map((v, i) =>
-                    `${i + 1}구간 <strong>${v}</strong>정거장`
-                );
-                text += parts.join(", ") + "을 이동합니다.";
-            }
-        } else { // 지하철
-            if (data.transferCount === 0) {
-                text += `<strong>환승 없이</strong> <strong>${data.lastSectionStations}</strong>정거장을 이동합니다.`;
-            } else {
-                text += `총 <strong>${data.transferCount}</strong>번 환승하고, `;
-                text += `첫 환승은 <strong>${data.firstTransferSection}</strong>번째 구간에서! `;
-                text += `마지막엔 <strong>${data.lastSectionStations}</strong>정거장을 더 갑니다.`;
-            }
-        }
-
-        return text + `<small>※ 실제 노선과는 무관한 랜덤 결과입니다.</small>`;
+    function pickRandomChallenge() {
+        const idx = Math.floor(Math.random() * challenge.length);
+        return challenge[idx];
     }
 
     // 데이터 → 공유용 URL (현재 주소 + 파라미터만 추가)
@@ -158,11 +119,10 @@
 
     // 결과 뿌리는 공통 함수 (주소창은 건드리지 않음)
     function showResult(data) {
-        const resultHtml = buildResultText(data);
         bubble.classList.remove("show");
 
         setTimeout(() => {
-            bubble.innerHTML = resultHtml;
+            bubble.innerHTML = data;
             bubble.classList.add("show");
         }, 80);
 
@@ -178,7 +138,7 @@
             hasStarted = true;
         }
 
-        const data = generateTripData();
+        const data = pickRandomChallenge();
         showResult(data);
     });
 
@@ -191,7 +151,7 @@
             scale: 2
         }).then(canvas => {
             const link = document.createElement("a");
-            link.download = "random-trip.png";
+            link.download = "random-challenge.png";
             link.href = canvas.toDataURL("image/png");
             link.click();
         }).catch(() => {
@@ -217,6 +177,8 @@
 
     // 공유 URL로 바로 들어온 경우: 결과 자동 복원
     window.addEventListener("load", () => {
+        loadJson();
+
         const data = parseResultFromUrl();
         if (!data) return;
 
