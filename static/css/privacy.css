@@ -88,6 +88,7 @@ body {
     background: #f3f4f6;
 }
 
+/* 하단 고정 링크 (필요 없으면 삭제해도 됨) */
 .footer-links {
     position: fixed;
     right: 12px;
@@ -102,4 +103,9 @@ body {
 .footer-links a {
     color: #aaa;
     text-decoration: none;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+    color: #6b7280;
 }
