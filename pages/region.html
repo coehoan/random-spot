@@ -8,6 +8,156 @@
     <link rel="stylesheet" href="../static/css/style.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
             crossorigin="anonymous"></script>
+
+    <!-- ✅ 필터 UI용 최소 추가 CSS (기존 style.css는 그대로 유지) -->
+    <style>
+        .filters {
+            margin: 14px auto 18px;
+            max-width: 460px;
+            text-align: left;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        /* ✅ 읍면동 제외: 한 줄 카드형 */
+        .filter-row{
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding: 12px 12px;
+            border-radius: 12px;
+            background:#ffffff;
+            border: 1px solid #e5e7eb;
+            cursor:pointer;
+        }
+        .filter-row:hover{
+            background:#f9fafb;
+            border-color:#d1d5db;
+        }
+        .filter-row input[type="checkbox"]{
+            width:18px;
+            height:18px;
+            accent-color:#111827;
+            flex: 0 0 auto;
+        }
+        .filter-row-text{ line-height:1.2; }
+        .filter-row-title{
+            font-size: 13px;
+            font-weight: 700;
+            color:#111827;
+        }
+        .filter-row-desc{
+            margin-top: 3px;
+            font-size: 12px;
+            color:#6b7280;
+        }
+
+        /* ✅ 체크박스와 아코디언 사이 간격 확보 */
+        .accordion-btn{
+            margin-top: 12px;
+            width:100%;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding: 12px 12px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background:#ffffff;
+            cursor:pointer;
+            transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+        }
+        .accordion-btn:hover{
+            background:#f9fafb;
+            border-color:#d1d5db;
+            transform: translateY(-0.5px);
+        }
+        .accordion-left{
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+        .accordion-title{
+            font-size: 13px;
+            font-weight: 700;
+            color:#111827;
+        }
+        .accordion-right{
+            display:flex;
+            align-items:center;
+            gap:10px;
+        }
+        .badge{
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background:#111827;
+            color:#ffffff;
+        }
+        .arrow{
+            font-size: 12px;
+            color:#6b7280;
+        }
+
+        /* ✅ 펼침 패널 */
+        .accordion-panel{
+            margin-top: 10px;
+            padding: 10px 10px 8px;
+            border-radius: 12px;
+            background:#ffffff;
+            border: 1px solid #e5e7eb;
+        }
+
+        .chips {
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+        }
+
+        .chip{
+            display:inline-flex;
+            align-items:center;
+            padding:7px 10px;
+            border-radius:999px;
+            border:1px solid #d1d5db;
+            background:#ffffff;
+            font-size:12px;
+            color:#374151;
+            cursor:pointer;
+            user-select:none;
+            transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+        }
+        .chip:hover{
+            background:#f3f4f6;
+            border-color:#9ca3af;
+            transform: translateY(-0.5px);
+        }
+        .chip.active{
+            background:#111827;
+            border-color:#111827;
+            color:#ffffff;
+        }
+
+        .mini-actions{
+            margin-top: 10px;
+            display:flex;
+            gap:8px;
+            justify-content:flex-end;
+            flex-wrap:wrap;
+        }
+        .mini-actions .secondary-btn{
+            padding:6px 12px;
+            font-size:12px;
+        }
+
+        .helper{
+            margin-top: 10px;
+            font-size: 11px;
+            color:#6b7280;
+            line-height:1.4;
+        }
+    </style>
 </head>
 <body>
 
@@ -22,6 +172,44 @@
 
         <h1 class="title">랜덤 지역 뽑기</h1>
         <p class="subtitle">전국 행정구역 중 시·군·구·읍·면·리까지 랜덤으로 정해보세요.</p>
+
+        <div class="filters">
+            <!-- ✅ 1) 읍면동 제외: 필터 박스 톤에 맞춘 한 줄 -->
+            <label class="filter-row">
+                <input type="checkbox" id="excludeEupMyeonDong">
+                <div class="filter-row-text">
+                    <div class="filter-row-title">읍·면·동 제외</div>
+                    <div class="filter-row-desc">시·군·구까지만 표시</div>
+                </div>
+            </label>
+
+            <!-- ✅ 2) 광역시/도 선택: '셀렉트' 느낌 제거한 아코디언 버튼 -->
+            <button id="toggleSidoBtn" class="accordion-btn" type="button" aria-expanded="false">
+        <span class="accordion-left">
+            <span class="pin">📍</span>
+            <span class="accordion-title">광역시 · 도 선택</span>
+        </span>
+                <span class="accordion-right">
+            <span id="selectedCount" class="badge">전체</span>
+            <span id="toggleArrow" class="arrow">▾</span>
+        </span>
+            </button>
+
+            <!-- ✅ 3) 펼쳤을 때만 나오는 영역 -->
+            <div id="sidoPanel" class="accordion-panel" style="display:none;">
+                <div class="chips" id="sidoChips"></div>
+
+                <!-- ✅ 전체 선택/해제: 펼쳤을 때만 보이도록 여기로 이동 -->
+                <div class="mini-actions" id="sidoActions" style="display:none;">
+                    <button id="selectAllBtn" class="secondary-btn" type="button"><span class="icon">✅</span>전체 선택</button>
+                    <button id="clearAllBtn" class="secondary-btn" type="button"><span class="icon">🧹</span>전체 해제</button>
+                </div>
+            </div>
+
+            <div class="helper">
+                ※ 광역시/도를 1개 이상 선택해야 랜덤 추첨이 실행됩니다.
+            </div>
+        </div>
 
         <button id="startBtn">시작하기</button>
 
@@ -54,24 +242,114 @@
     const shareBtn = document.getElementById("shareBtn");
     const toast = document.getElementById("toast");
 
+    const excludeEupMyeonDongEl = document.getElementById("excludeEupMyeonDong");
+    const sidoChipsEl = document.getElementById("sidoChips");
+    const selectAllBtn = document.getElementById("selectAllBtn");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+
+    const toggleSidoBtn = document.getElementById("toggleSidoBtn");
+    const toggleArrow = document.getElementById("toggleArrow");
+    const selectedCountEl = document.getElementById("selectedCount");
+    const sidoPanel = document.getElementById("sidoPanel");
+    const sidoActions = document.getElementById("sidoActions");
+
     let hasStarted = false;
     let regions = [];
     let stepTimer = null;
-    let isCsvLoaded = false;   // ✅ CSV 로드 여부 플래그
+    let isCsvLoaded = false;
+    let isSidoOpen = false; // 처음엔 접힘
+
+    // ✅ 광역시/도 목록 (CSV 첫 토큰 기준 매칭)
+    const SIDO_LIST = [
+        "서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시",
+        "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도", "경상남도", "제주특별자치도"
+    ];
+
+    // ✅ 선택된 시도 집합
+    const selectedSido = new Set(SIDO_LIST); // 기본: 전체 선택
 
     // 처음에는 버튼 비활성화
     startBtn.disabled = true;
     startBtn.textContent = "데이터 불러오는 중...";
 
-    // CSV 파일 fetch 로드
+    // ===== UI helpers =====
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2000);
+    }
+
+    function stopStepTimer() {
+        if (stepTimer) {
+            clearInterval(stepTimer);
+            stepTimer = null;
+        }
+    }
+
+    function renderSidoChips() {
+        sidoChipsEl.innerHTML = "";
+        SIDO_LIST.forEach(name => {
+            const chip = document.createElement("div");
+            chip.className = "chip" + (selectedSido.has(name) ? " active" : "");
+            chip.textContent = name;
+            chip.addEventListener("click", () => {
+                if (selectedSido.has(name)) selectedSido.delete(name);
+                else selectedSido.add(name);
+                renderSidoChips();
+            });
+            sidoChipsEl.appendChild(chip);
+        });
+        updateSelectedBadge();
+    }
+
+    function updateSelectedBadge() {
+        if (selectedSido.size === SIDO_LIST.length) {
+            selectedCountEl.textContent = "전체";
+        } else if (selectedSido.size === 0) {
+            selectedCountEl.textContent = "미선택";
+        } else {
+            selectedCountEl.textContent = `${selectedSido.size}개 선택`;
+        }
+    }
+
+    toggleSidoBtn.addEventListener("click", () => {
+        isSidoOpen = !isSidoOpen;
+
+        // aria 상태 업데이트
+        toggleSidoBtn.setAttribute("aria-expanded", String(isSidoOpen));
+
+        if (isSidoOpen) {
+            sidoPanel.style.display = "block";
+            sidoActions.style.display = "flex"; // ✅ 펼쳤을 때만 노출
+            toggleArrow.textContent = "▴";
+        } else {
+            sidoPanel.style.display = "none";
+            sidoActions.style.display = "none"; // ✅ 접히면 숨김
+            toggleArrow.textContent = "▾";
+        }
+    });
+
+    // 전체 선택/해제 버튼은 그대로 쓰되, renderSidoChips()로 배지 자동 갱신됨
+    selectAllBtn.addEventListener("click", () => {
+        SIDO_LIST.forEach(s => selectedSido.add(s));
+        renderSidoChips();
+    });
+
+    clearAllBtn.addEventListener("click", () => {
+        selectedSido.clear();
+        renderSidoChips();
+    });
+
+    renderSidoChips();
+
+    // ===== CSV =====
     async function loadCsv() {
         try {
             const response = await fetch("../static/files/regions.csv");
             const text = await response.text();
             regions = parseCsv(text);
-            isCsvLoaded = true;                     // ✅ 로드 완료 표시
 
-            // 버튼 활성화
+            isCsvLoaded = true;
             startBtn.disabled = false;
             startBtn.textContent = hasStarted ? "다시하기" : "시작하기";
 
@@ -85,29 +363,38 @@
         }
     }
 
-    // CSV 파싱
     function parseCsv(text) {
         const lines = text.trim().split(/\r?\n/);
         const result = [];
-
         for (let i = 1; i < lines.length; i++) {
             const [code, name] = lines[i].split(",");
             if (!code || !name) continue;
-            result.push({
-                code: code.trim(),
-                name: name.trim()
-            });
+            result.push({ code: code.trim(), name: name.trim() });
         }
         return result;
     }
 
-    function pickRandomRegion() {
-        const idx = Math.floor(Math.random() * regions.length);
-        return regions[idx];
+    function getSidoFromName(fullName) {
+        const first = (fullName || "").trim().split(/\s+/)[0];
+        return first || "";
     }
 
-    function buildShareUrl(region) {
-        const payload = { code: region.code, name: region.name };
+    function getFilteredRegions() {
+        // 1) 시도 필터
+        let filtered = regions.filter(r => selectedSido.has(getSidoFromName(r.name)));
+
+        // 2) (옵션) 읍면동 제외는 "표시 레벨"에서 처리하므로 여기서는 굳이 제거하지 않음
+        //    다만 시군구가 없는 데이터(토큰 1개)면 그대로 허용
+        return filtered;
+    }
+
+    function pickRandomRegionFrom(list) {
+        const idx = Math.floor(Math.random() * list.length);
+        return list[idx];
+    }
+
+    // ===== Share URL =====
+    function buildShareUrl(payload) {
         const encoded = encodeURIComponent(JSON.stringify(payload));
         return `${window.location.origin}${window.location.pathname}?result=${encoded}`;
     }
@@ -123,29 +410,61 @@
         }
     }
 
-    function showToast(message) {
-        toast.textContent = message;
-        toast.classList.add("show");
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 2000);
+    // 선택이 전체가 아니거나, 0개면 사용자가 확인하기 쉽도록 자동 펼침 (원하면 조건 조절 가능)
+    function openSidoPanel() {
+        isSidoOpen = true;
+        toggleSidoBtn.setAttribute("aria-expanded", "true");
+        sidoPanel.style.display = "block";
+        sidoActions.style.display = "flex";
+        toggleArrow.textContent = "▴";
     }
 
-    function stopStepTimer() {
-        if (stepTimer) {
-            clearInterval(stepTimer);
-            stepTimer = null;
+    function applyFiltersFromPayload(payload) {
+        if (!payload) return;
+
+        // 읍면동 제외 복원
+        if (typeof payload.excludeEupMyeonDong === "boolean") {
+            excludeEupMyeonDongEl.checked = payload.excludeEupMyeonDong;
+        }
+
+        // 시도 선택 복원
+        if (Array.isArray(payload.selectedSido)) {
+            selectedSido.clear();
+            payload.selectedSido.forEach(s => {
+                if (SIDO_LIST.includes(s)) selectedSido.add(s);
+            });
+            renderSidoChips();
+        }
+
+        // 선택된 시도가 일부 있을 경우 자동 펼침
+        if (selectedSido.size !== SIDO_LIST.length) {
+            openSidoPanel();
         }
     }
 
-    // 0.5초 간격으로 단계적으로 행정구역 표시
-    function showRegionStepByStep(region) {
+    // ===== Display =====
+    function normalizeNameForDisplay(fullName, excludeEupMyeonDong) {
+        const parts = (fullName || "").trim().split(/\s+/).filter(Boolean);
+
+        if (!excludeEupMyeonDong) return parts;
+
+        // ✅ 읍면동 제외: "광역/도 + 시군구"까지만 보여주기
+        // - 보통 [광역/도, 시/군/구, 읍/면/동, 리...]
+        // - 토큰이 2개 미만이면 그대로
+        const maxDepth = Math.min(parts.length, 2);
+        return parts.slice(0, maxDepth);
+    }
+
+    function showRegionStepByStep(region, excludeEupMyeonDong) {
         stopStepTimer();
 
-        const name = region.name.trim();
-        const parts = name.split(/\s+/).filter(Boolean);
-        let index = 0;
+        const parts = normalizeNameForDisplay(region.name, excludeEupMyeonDong);
+        if (!parts.length) {
+            showToast("표시할 행정구역명이 없습니다.");
+            return;
+        }
 
+        let index = 0;
         bubble.classList.remove("show");
 
         setTimeout(() => {
@@ -155,9 +474,7 @@
                 bubble.classList.add("show");
                 index++;
 
-                if (index >= parts.length) {
-                    stopStepTimer();
-                }
+                if (index >= parts.length) stopStepTimer();
             }
 
             render();
@@ -166,18 +483,29 @@
     }
 
     function showRegion(region) {
-        if (!region) return;
-        showRegionStepByStep(region);
+        const exclude = excludeEupMyeonDongEl.checked;
+        showRegionStepByStep(region, exclude);
 
-        const shareUrl = buildShareUrl(region);
-        shareBtn.dataset.url = shareUrl;
+        // 공유 payload에 필터 포함
+        const payload = {
+            code: region.code,
+            name: region.name,
+            excludeEupMyeonDong: exclude,
+            selectedSido: Array.from(selectedSido)
+        };
+
+        shareBtn.dataset.url = buildShareUrl(payload);
     }
 
-    // 시작 / 다시하기 버튼
+    // ===== Events =====
     startBtn.addEventListener("click", () => {
-        // ✅ CSV 로드 안 됐으면 바로 차단
         if (!isCsvLoaded) {
             showToast("데이터를 불러오는 중입니다. 잠시 후 다시 눌러주세요.");
+            return;
+        }
+
+        if (selectedSido.size === 0) {
+            showToast("광역시/도를 1개 이상 선택해주세요.");
             return;
         }
 
@@ -187,40 +515,35 @@
             hasStarted = true;
         }
 
-        if (!regions.length) {
-            alert("행정구역 데이터가 비어 있습니다.");
+        const filtered = getFilteredRegions();
+        if (!filtered.length) {
+            showToast("선택한 지역에 해당하는 데이터가 없습니다.");
             return;
         }
 
-        const region = pickRandomRegion();
+        const region = pickRandomRegionFrom(filtered);
         showRegion(region);
     });
 
-    // 이미지 저장 (말풍선만 캡처)
     saveImgBtn.addEventListener("click", () => {
         if (!bubble.classList.contains("show")) return;
 
-        html2canvas(bubble, {
-            backgroundColor: null,
-            scale: 2
-        }).then(canvas => {
-            const link = document.createElement("a");
-            link.download = "random-region.png";
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-        }).catch(() => {
-            alert("이미지 저장 중 오류가 발생했습니다.");
-        });
+        html2canvas(bubble, { backgroundColor: null, scale: 2 })
+            .then(canvas => {
+                const link = document.createElement("a");
+                link.download = "random-region.png";
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            })
+            .catch(() => alert("이미지 저장 중 오류가 발생했습니다."));
     });
 
-    // 결과 공유
     shareBtn.addEventListener("click", async () => {
         const urlToCopy = shareBtn.dataset.url || `${window.location.origin}${window.location.pathname}`;
-
         if (navigator.clipboard && navigator.clipboard.writeText) {
             try {
                 await navigator.clipboard.writeText(urlToCopy);
-                showToast("현재 결과가 포함된 링크를 클립보드에 복사했어요 ✨");
+                showToast("현재 결과+필터가 포함된 링크를 복사했어요 ✨");
             } catch {
                 showToast("복사에 실패했습니다 😢");
             }
@@ -229,25 +552,34 @@
         }
     });
 
-    // 공유 URL로 바로 들어온 경우: 결과 복원 + 주소창 정리
     window.addEventListener("load", () => {
-        loadCsv(); // CSV는 백그라운드로 로드
+        loadCsv();
 
-        const data = parseResultFromUrl();
-        if (!data) return;
+        const payload = parseResultFromUrl();
+        if (!payload) return;
+
+        applyFiltersFromPayload(payload);
 
         actions.style.display = "flex";
         startBtn.textContent = "다시하기";
         hasStarted = true;
 
-        showRegionStepByStep({ code: data.code, name: data.name });
-        shareBtn.dataset.url = buildShareUrl(data);
+        // 공유 데이터로 즉시 표시 (CSV 없어도 가능)
+        showRegionStepByStep({ code: payload.code, name: payload.name }, !!payload.excludeEupMyeonDong);
+
+        // 공유 버튼은 "현재 상태"로 다시 만들어주기
+        const rebuilt = {
+            code: payload.code,
+            name: payload.name,
+            excludeEupMyeonDong: !!payload.excludeEupMyeonDong,
+            selectedSido: Array.from(selectedSido)
+        };
+        shareBtn.dataset.url = buildShareUrl(rebuilt);
 
         const cleanUrl = `${window.location.origin}${window.location.pathname}`;
         window.history.replaceState({}, "", cleanUrl);
     });
 
-    // 메인 페이지 이동
     document.getElementById("goMainBtn").addEventListener("click", () => {
         window.location.href = "../index.html";
     });
