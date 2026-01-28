@@ -170,6 +170,153 @@ body {
     z-index: 999;
 }
 
+.filters {
+    margin: 14px auto 18px;
+    max-width: 460px;
+    text-align: left;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 12px;
+}
+
+/* ✅ 읍면동 제외: 한 줄 카드형 */
+.filter-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding: 12px 12px;
+    border-radius: 12px;
+    background:#ffffff;
+    border: 1px solid #e5e7eb;
+    cursor:pointer;
+}
+.filter-row:hover{
+    background:#f9fafb;
+    border-color:#d1d5db;
+}
+.filter-row input[type="checkbox"]{
+    width:18px;
+    height:18px;
+    accent-color:#111827;
+    flex: 0 0 auto;
+}
+.filter-row-text{ line-height:1.2; }
+.filter-row-title{
+    font-size: 13px;
+    font-weight: 700;
+    color:#111827;
+}
+.filter-row-desc{
+    margin-top: 3px;
+    font-size: 12px;
+    color:#6b7280;
+}
+
+/* ✅ 체크박스와 아코디언 사이 간격 확보 */
+.accordion-btn{
+    margin-top: 12px;
+    width:100%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 12px 12px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background:#ffffff;
+    cursor:pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+}
+.accordion-btn:hover{
+    background:#f9fafb;
+    border-color:#d1d5db;
+    transform: translateY(-0.5px);
+}
+.accordion-left{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.accordion-title{
+    font-size: 13px;
+    font-weight: 700;
+    color:#111827;
+}
+.accordion-right{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+.badge{
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background:#111827;
+    color:#ffffff;
+}
+.arrow{
+    font-size: 12px;
+    color:#6b7280;
+}
+
+/* ✅ 펼침 패널 */
+.accordion-panel{
+    margin-top: 10px;
+    padding: 10px 10px 8px;
+    border-radius: 12px;
+    background:#ffffff;
+    border: 1px solid #e5e7eb;
+}
+
+.chips {
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.chip{
+    display:inline-flex;
+    align-items:center;
+    padding:7px 10px;
+    border-radius:999px;
+    border:1px solid #d1d5db;
+    background:#ffffff;
+    font-size:12px;
+    color:#374151;
+    cursor:pointer;
+    user-select:none;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+}
+.chip:hover{
+    background:#f3f4f6;
+    border-color:#9ca3af;
+    transform: translateY(-0.5px);
+}
+.chip.active{
+    background:#111827;
+    border-color:#111827;
+    color:#ffffff;
+}
+
+.mini-actions{
+    margin-top: 10px;
+    display:flex;
+    gap:8px;
+    justify-content:flex-end;
+    flex-wrap:wrap;
+}
+.mini-actions .secondary-btn{
+    padding:6px 12px;
+    font-size:12px;
+}
+
+.helper{
+    margin-top: 10px;
+    font-size: 11px;
+    color:#6b7280;
+    line-height:1.4;
+}
+
 @media (max-width: 600px) {
     .card {
         padding: 24px 20px 28px;
