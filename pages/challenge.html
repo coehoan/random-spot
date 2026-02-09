@@ -5,6 +5,7 @@
     <meta property="og:image" content="../static/img/og-main.png" />
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>랜덤 교통수단 뽑기</title>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link rel="icon" href="../static/img/favicon.ico">
@@ -26,7 +27,29 @@
         <h1 class="title">랜덤 챌린지</h1>
         <p class="subtitle">오늘의 챌린지를 뽑아보세요!</p>
 
-        <button id="startBtn">시작하기</button>
+        <section class="content-box">
+            <h2>사용 방법</h2>
+            <p>
+                시작하기를 누르면 오늘의 챌린지가 랜덤으로 결정됩니다.
+                “뭘 해야 하지?”가 떠오르지 않을 때, 가볍게 행동을 시작하게 도와줘요.
+            </p>
+            <ul>
+                <li><b>난이도</b>는 상황에 맞게 조절해도 괜찮아요. 핵심은 “실행”입니다.</li>
+                <li>친구에게 링크로 공유하고, 서로 인증하면 지속하기가 쉬워요.</li>
+            </ul>
+
+            <h2>FAQ</h2>
+            <ul>
+                <li><b>Q.</b> 마음에 안 들면 다시 뽑아도 되나요? <b><br>A.</b> 가능하지만, 2~3번까지만 추천해요.</li>
+                <li><b>Q.</b> 결과를 저장할 수 있나요? <b><br>A.</b> 이미지 저장 기능을 사용하세요.</li>
+            </ul>
+
+            <p class="muted">
+                안내: 위험하거나 불편한 챌린지는 건너뛰세요. 안전이 최우선입니다.
+            </p>
+        </section>
+
+        <button id="startBtn" style="margin-top: 18px">시작하기</button>
 
         <!-- 말풍선 영역 -->
         <div class="bubble-wrap">

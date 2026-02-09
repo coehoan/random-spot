@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>랜덤 사이트</title>
 
     <link rel="icon" href="static/img/favicon.ico">
@@ -14,7 +15,23 @@
         <h1 class="title">오늘 뭐하지? 랜덤으로 뽑기!</h1>
         <p class="subtitle">아래에서 원하는 랜덤 기능을 선택하세요.</p>
 
-        <div style="display: flex; justify-content: center; align-items: center; gap: 1rem;">
+        <section class="content-box">
+            <h2>이 사이트는 무엇을 해주나요?</h2>
+            <p>
+                “랜덤”으로 교통수단/여행지역/챌린지를 뽑아주는 작은 도구예요.
+                고민 시간을 줄이고, 가볍게 밖에 나갈 핑계를 만들도록 설계했습니다.
+            </p>
+            <ul>
+                <li><b>랜덤 교통수단</b>: 버스/지하철/방향/환승까지 랜덤으로 정해요.</li>
+                <li><b>랜덤 여행지역</b>: 시·도/시군구/읍면동(옵션)을 랜덤으로 뽑아요.</li>
+                <li><b>랜덤 챌린지</b>: 오늘 할 미션을 랜덤으로 정해서 바로 실행해요.</li>
+            </ul>
+            <p class="muted">
+                팁: 결과 화면에서 “공유 링크”를 복사하면, 지금 뽑힌 결과를 친구에게 그대로 전달할 수 있어요.
+            </p>
+        </section>
+
+        <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 18px">
             <!-- ✅ 랜덤 교통수단 -->
             <button id="vehicleBtn" class="secondary-btn" style="font-size: 15px;">
                 🚌 랜덤 교통수단

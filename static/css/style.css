@@ -330,3 +330,166 @@ body {
         font-size: 15px;
     }
 }
+
+/* ===== AdSense 대비: 콘텐츠 보강 섹션(1번) ===== */
+.content-box {
+    margin-top: 18px;
+    text-align: left;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.content-box h2 {
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    color: #111827;
+}
+
+.content-box p {
+    font-size: 13px;
+    line-height: 1.65;
+    color: #374151;
+    margin-bottom: 10px;
+}
+
+.content-box ul {
+    padding-left: 18px;
+    margin: 8px 0 12px;
+}
+
+.content-box li {
+    font-size: 13px;
+    line-height: 1.65;
+    color: #374151;
+    margin: 4px 0;
+}
+
+.content-box .muted {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 10px;
+}
+
+/* ===== AdSense 대비: 다운로드 링크(2번) ===== */
+.download-link {
+    display: none;            /* JS에서 필요할 때만 보이게 */
+    text-decoration: none;
+}
+
+
+/* ===== 모바일 최적화 기본 ===== */
+:root {
+    --container-max: 720px;
+}
+
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    /* iOS safe-area 대응 */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+/* 컨테이너가 너무 좁거나 넓게 흔들리지 않게 */
+.container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 14px 14px 22px;
+    box-sizing: border-box;
+}
+
+/* 카드/버블: 모바일에서 좌우 꽉 차게 + 줄바꿈 안정화 */
+.card, .chat-card {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.bubble, .result-bubble, .chat-bubble {
+    max-width: 100%;
+    box-sizing: border-box;
+    word-break: break-word;      /* 긴 지역명/문장 줄바꿈 */
+    overflow-wrap: anywhere;     /* URL/해시/긴 토큰 줄바꿈 */
+}
+
+/* 버튼/입력: 모바일 터치 영역 확대 */
+button, .btn, .primary-btn, .secondary-btn, a.secondary-btn {
+    min-height: 44px;            /* 모바일 권장 터치 높이 */
+    padding: 12px 14px;
+    border-radius: 14px;
+    box-sizing: border-box;
+}
+
+/* 작은 버튼/아이콘 버튼도 너무 작아지지 않게 */
+button.small, .btn.small {
+    min-height: 40px;
+    padding: 10px 12px;
+}
+
+/* 폼 요소(셀렉트/체크박스 라벨) 터치 편의 */
+select, input[type="text"] {
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 16px; /* iOS에서 16px 미만이면 자동 확대(줌)되는 경우 방지 */
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+label {
+    cursor: pointer;
+}
+
+/* 링크/공유 URL이 길어도 레이아웃 안 깨지게 */
+.share-url, .url, .link-text {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* ===== 반응형: 작은 화면에서 레이아웃 재배치 ===== */
+@media (max-width: 520px) {
+    .topbar {
+        padding: 10px 12px;
+    }
+
+    .topbar h1, .topbar .title {
+        font-size: 16px;
+        line-height: 1.25;
+    }
+
+    /* 버튼들을 2열/1열로 유연하게 */
+    .btn-row, .button-row, .actions, .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* “핵심 버튼”은 모바일에서 1열 꽉 차게가 보통 편함 */
+    .primary-btn, .btn-primary {
+        width: 100%;
+    }
+
+    /* 서브 버튼은 2개씩 배치되도록 */
+    .secondary-btn, .btn-secondary {
+        flex: 1 1 calc(50% - 5px);
+    }
+
+    /* 너무 긴 제목/설명은 줄바꿈 자연스럽게 */
+    .subtitle, .desc, .content-box p {
+        font-size: 13px;
+        line-height: 1.65;
+    }
+}
+
+/* ===== 초소형(작은 안드로이드) ===== */
+@media (max-width: 360px) {
+    .secondary-btn, .btn-secondary {
+        flex-basis: 100%;
+    }
+}

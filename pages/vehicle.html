@@ -5,6 +5,7 @@
     <meta property="og:image" content="../static/img/og-main.png" />
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>랜덤 교통수단 뽑기</title>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link rel="icon" href="../static/img/favicon.ico">
@@ -26,7 +27,30 @@
         <h1 class="title">랜덤 교통수단 뽑기</h1>
         <p class="subtitle">버스 · 지하철 · 방향 · 환승까지 전부 랜덤으로 정해보세요.</p>
 
-        <button id="startBtn">시작하기</button>
+        <section class="content-box">
+            <h2>사용 방법</h2>
+            <p>
+                시작하기를 누르면 오늘의 이동 방식이 랜덤으로 정해집니다.
+                “어디 갈지/뭘 탈지” 고민이 많을 때 빠르게 결정을 내려줘요.
+            </p>
+            <ul>
+                <li>혼자 산책/카페/마트처럼 <b>짧은 외출</b>에 잘 맞아요.</li>
+                <li>결과가 마음에 안 들면 다시 눌러도 OK. 단, 너무 많이 다시 뽑으면 재미가 줄어요 🙂</li>
+                <li>친구랑 할 때는 <b>같은 결과로 출발</b>하는 룰을 정하면 더 재밌습니다.</li>
+            </ul>
+
+            <h2>FAQ</h2>
+            <ul>
+                <li><b>Q.</b> 결과가 현실적으로 불가능하면요? <b><br>A.</b> 안전/시간/날씨를 우선으로 적당히 조정하세요.</li>
+                <li><b>Q.</b> 결과를 저장/공유할 수 있나요? <b><br>A.</b> 아래 “이미지/공유” 버튼을 사용하세요.</li>
+            </ul>
+
+            <p class="muted">
+                안내: 이 페이지는 재미를 위한 랜덤 도구이며, 안전과 교통규칙을 우선으로 판단해 주세요.
+            </p>
+        </section>
+
+        <button id="startBtn" style="margin-top: 18px">시작하기</button>
 
         <!-- 말풍선 영역 -->
         <div class="bubble-wrap">
