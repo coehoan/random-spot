@@ -4,6 +4,14 @@
     padding: 0;
 }
 
+.dis-none {
+    display: none!important;
+}
+
+.result-ad {
+    margin-top: 18px;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
     background: #f5f6fa;
@@ -63,6 +71,7 @@ body {
     margin-top: 30px;
     display: flex;
     justify-content: center;
+    flex-direction: column;
     min-height: 65px;
 }
 
@@ -358,13 +367,6 @@ body {
     color: #6b7280;
     margin-top: 10px;
 }
-
-/* ===== AdSense 대비: 다운로드 링크(2번) ===== */
-.download-link {
-    display: none;            /* JS에서 필요할 때만 보이게 */
-    text-decoration: none;
-}
-
 
 /* ===== 모바일 최적화 기본 ===== */
 :root {

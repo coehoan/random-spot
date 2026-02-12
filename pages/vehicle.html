@@ -8,8 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>랜덤 교통수단 뽑기</title>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <link rel="icon" href="../static/img/favicon.ico">
-    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="icon" href="/static/img/favicon.ico">
+    <link rel="stylesheet" href="/static/css/style.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
             crossorigin="anonymous"></script>
 </head>
@@ -53,8 +53,17 @@
         <button id="startBtn" style="margin-top: 18px">시작하기</button>
 
         <!-- 말풍선 영역 -->
-        <div class="bubble-wrap">
+        <div id="bubbleWrap" class="bubble-wrap dis-none">
             <div id="bubble" class="bubble"></div>
+            <div id="resultAd" class="dis-none result-ad">
+                <!-- 수평-반응형(vehicle) -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-9815986502338537"
+                     data-ad-slot="9413905561"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
         </div>
 
         <!-- 결과 관련 버튼들 -->
@@ -72,12 +81,14 @@
 </div>
 
 <div class="footer-links">
-    <a href="../static/html/privacy.html" style="color:#aaa; text-decoration:none;">개인정보처리방침</a>
+    <a href="/static/html/privacy.html" style="color:#aaa; text-decoration:none;">개인정보처리방침</a>
 </div>
 
 <script>
     const startBtn = document.getElementById("startBtn");
+    const bubbleWrap = document.getElementById("bubbleWrap");
     const bubble = document.getElementById("bubble");
+    const resultAd = document.getElementById("resultAd");
     const actions = document.getElementById("actions");
     const saveImgBtn = document.getElementById("saveImgBtn");
     const shareBtn = document.getElementById("shareBtn");
@@ -202,7 +213,18 @@
         if (!hasStarted) {
             startBtn.textContent = "다시하기";
             actions.style.display = "flex";
+            bubbleWrap.classList.remove("dis-none");
+            resultAd.classList.remove("dis-none");
             hasStarted = true;
+        }
+
+        if (!adInitialized) {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                adInitialized = true;
+            } catch (e) {
+                console.log("Ads init failed:", e);
+            }
         }
 
         const data = generateTripData();
@@ -249,7 +271,18 @@
 
         actions.style.display = "flex";
         startBtn.textContent = "다시하기";
+        bubbleWrap.classList.remove("dis-none");
+        resultAd.classList.remove("dis-none");
         hasStarted = true;
+
+        if (!adInitialized) {
+            try {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                adInitialized = true;
+            } catch (e) {
+                console.log("Ads init failed:", e);
+            }
+        }
 
         showResult(data);
 
