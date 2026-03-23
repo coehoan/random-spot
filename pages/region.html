@@ -32,21 +32,21 @@
             <h2>사용 방법</h2>
             <p>
                 원하는 범위를 선택한 뒤 “시작하기”를 누르면 여행/나들이 지역을 랜덤으로 뽑습니다.
-                필터를 좁힐수록 더 취향에 맞는 결과가 나와요.
+                범위를 좁힐수록 더 취향에 맞는 결과를 고르기 쉬워집니다.
             </p>
             <ul>
-                <li>광역시·도 → 시군구 → (옵션) 읍면동 순으로 범위를 좁혀보세요.</li>
-                <li>결과가 나오면 “공유 링크”로 친구에게 같은 결과를 전달할 수 있어요.</li>
+                <li>광역시·도 → 시군구 → (옵션) 읍면동 순으로 범위를 차례대로 좁혀보세요.</li>
+                <li>결과가 나오면 이미지 저장이나 공유 링크로 같은 결과를 바로 전달할 수 있어요.</li>
             </ul>
 
-            <h2>FAQ</h2>
+            <!--<h2>FAQ</h2>
             <ul>
                 <li><b>Q.</b> 읍면동 제외는 뭔가요? <b><br>A.</b> 너무 세부 지역이 나오는 걸 줄이기 위한 옵션입니다.</li>
                 <li><b>Q.</b> 결과가 마음에 안 들면요? <b><br>A.</b> 필터를 조정하거나 다시 뽑아보세요.</li>
-            </ul>
+            </ul>-->
 
             <p class="muted">
-                안내: 지역명/행정구역 데이터는 업데이트에 따라 실제와 일부 다를 수 있습니다.
+                안내: 지역명과 행정구역 데이터는 업데이트 시점에 따라 실제와 일부 다를 수 있습니다.
             </p>
         </section>
 
@@ -92,15 +92,6 @@
 
         <div id="bubbleWrap" class="bubble-wrap dis-none">
             <div id="bubble" class="bubble"></div>
-            <div id="resultAd" class="dis-none result-ad">
-                <!-- 수평-반응형(region) -->
-                <ins class="adsbygoogle"
-                     style="display:block"
-                     data-ad-client="ca-pub-9815986502338537"
-                     data-ad-slot="1475597998"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-            </div>
         </div>
 
         <div class="actions" id="actions">
@@ -109,7 +100,7 @@
                 결과 이미지로 저장
             </button>
             <button id="shareBtn" class="secondary-btn">
-                <span class="icon">📤</span>
+                <span class="icon">🔗</span>
                 결과 공유하기
             </button>
         </div>
@@ -124,7 +115,6 @@
     const startBtn = document.getElementById("startBtn");
     const bubbleWrap = document.getElementById("bubbleWrap");
     const bubble = document.getElementById("bubble");
-    const resultAd = document.getElementById("resultAd");
     const actions = document.getElementById("actions");
     const saveImgBtn = document.getElementById("saveImgBtn");
     const shareBtn = document.getElementById("shareBtn");
@@ -141,7 +131,6 @@
     const sidoPanel = document.getElementById("sidoPanel");
     const sidoActions = document.getElementById("sidoActions");
 
-    let adInitialized = false; // 광고 시작여부
     let hasStarted = false;
     let regions = [];
     let stepTimer = null;
@@ -416,17 +405,7 @@
             startBtn.textContent = "다시하기";
             actions.style.display = "flex";
             bubbleWrap.classList.remove("dis-none");
-            resultAd.classList.remove("dis-none");
             hasStarted = true;
-        }
-
-        if (!adInitialized) {
-            try {
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                adInitialized = true;
-            } catch (e) {
-                console.log("Ads init failed:", e);
-            }
         }
 
         const filtered = getFilteredRegions();
@@ -477,17 +456,7 @@
         actions.style.display = "flex";
         startBtn.textContent = "다시하기";
         bubbleWrap.classList.remove("dis-none");
-        resultAd.classList.remove("dis-none");
         hasStarted = true;
-
-        if (!adInitialized) {
-            try {
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                adInitialized = true;
-            } catch (e) {
-                console.log("Ads init failed:", e);
-            }
-        }
 
         // 공유 데이터로 즉시 표시 (CSV 없어도 가능)
         showRegionStepByStep({ code: payload.code, name: payload.name }, !!payload.excludeEupMyeonDong);

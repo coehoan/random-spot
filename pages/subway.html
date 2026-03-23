@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta property="og:image" content="https://randomspot.netlify.app/static/img/og-main.png" />
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>랜덤 지하철역 뽑기</title>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <link rel="icon" href="/static/img/favicon.ico">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
+            crossorigin="anonymous"></script>
+</head>
+<body>
+
+<div class="page">
+    <div id="toast" class="toast"></div>
+    <section class="card">
+        <div style="display:flex; justify-content:flex-start; margin-bottom: 12px;">
+            <button id="goMainBtn" class="secondary-btn go-main-btn">
+                🏠 메인으로
+            </button>
+        </div>
+
+        <h1 class="title">랜덤 지하철역 뽑기</h1>
+        <p class="subtitle">권역을 선택하고, 선택한 권역 안에서 지하철역 하나를 랜덤으로 골라보세요.</p>
+
+        <section class="content-box">
+            <h2>사용 방법</h2>
+            <p>
+                원하는 권역을 선택한 뒤 “시작하기”를 누르면 해당 권역 안에서 지하철역 하나를 랜덤으로 뽑습니다.
+                권역을 여러 개 고르면 선택한 범위를 합쳐서 결과를 정합니다.
+            </p>
+            <ul>
+                <li>서울과 수도권처럼 겹치는 권역을 함께 선택해도 같은 역은 한 번만 후보에 넣습니다.</li>
+                <li>결과가 나오면 이미지 저장이나 공유 링크로 같은 결과와 선택 상태를 전달할 수 있어요.</li>
+            </ul>
+
+            <!--<h2>FAQ</h2>
+            <ul>
+                <li><b>Q.</b> 서울과 수도권을 같이 선택하면 중복으로 뽑히나요? <b><br>A.</b> 아니요. 같은 역은 한 번만 후보에 넣고, 결과에는 해당 역이 속한 선택 권역을 함께 표시합니다.</li>
+            </ul>-->
+
+            <p class="muted">
+                안내: 역 정보와 권역 구분은 데이터 기준에 따라 실제 운영 범위와 일부 다를 수 있습니다.
+            </p>
+        </section>
+
+        <div class="filters">
+            <button id="toggleRegionBtn" class="accordion-btn" type="button" aria-expanded="false">
+                <span class="accordion-left">
+                    <span class="pin">📍</span>
+                    <span class="accordion-title">권역 선택</span>
+                </span>
+                <span class="accordion-right">
+                    <span id="selectedCount" class="badge">전체</span>
+                    <span id="toggleArrow" class="arrow">▾</span>
+                </span>
+            </button>
+
+            <div id="regionPanel" class="accordion-panel" style="display:none;">
+                <div class="chips" id="regionChips"></div>
+
+                <div class="mini-actions" id="regionActions" style="display:none;">
+                    <button id="selectAllBtn" class="secondary-btn" type="button"><span class="icon">✅</span>전체 선택</button>
+                    <button id="clearAllBtn" class="secondary-btn" type="button"><span class="icon">❌</span>전체 해제</button>
+                </div>
+            </div>
+
+            <div class="helper">
+                권역은 1개 이상 선택해야 랜덤 추첨이 실행됩니다.
+            </div>
+        </div>
+
+        <button id="startBtn">데이터 불러오는 중...</button>
+
+        <div id="bubbleWrap" class="bubble-wrap dis-none">
+            <div id="bubble" class="bubble"></div>
+        </div>
+
+        <div class="actions" id="actions">
+            <button id="saveImgBtn" class="secondary-btn">
+                <span class="icon">🖼️</span>
+                결과 이미지로 저장
+            </button>
+            <button id="shareBtn" class="secondary-btn">
+                <span class="icon">📤</span>
+                결과 공유하기
+            </button>
+        </div>
+    </section>
+</div>
+
+<div class="footer-links">
+    <a href="/static/html/privacy.html" style="color:#aaa; text-decoration:none;">개인정보처리방침</a>
+</div>
+
+<script>
+    const startBtn = document.getElementById("startBtn");
+    const bubbleWrap = document.getElementById("bubbleWrap");
+    const bubble = document.getElementById("bubble");
+    const actions = document.getElementById("actions");
+    const saveImgBtn = document.getElementById("saveImgBtn");
+    const shareBtn = document.getElementById("shareBtn");
+    const toast = document.getElementById("toast");
+
+    const regionChipsEl = document.getElementById("regionChips");
+    const selectAllBtn = document.getElementById("selectAllBtn");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+    const toggleRegionBtn = document.getElementById("toggleRegionBtn");
+    const toggleArrow = document.getElementById("toggleArrow");
+    const selectedCountEl = document.getElementById("selectedCount");
+    const regionPanel = document.getElementById("regionPanel");
+    const regionActions = document.getElementById("regionActions");
+
+    const collator = new Intl.Collator("ko");
+    const REGION_ORDER = ["서울", "수도권", "부산", "대구", "대전", "광주"];
+    const REGION_PRIORITY = new Map(REGION_ORDER.map((name, index) => [name, index]));
+
+    let hasStarted = false;
+    let stations = [];
+    let availableRegions = [];
+    let isCsvLoaded = false;
+    let isRegionOpen = false;
+
+    const selectedRegions = new Set();
+
+    startBtn.disabled = true;
+
+    function compareRegions(a, b) {
+        const priorityA = REGION_PRIORITY.has(a) ? REGION_PRIORITY.get(a) : Number.MAX_SAFE_INTEGER;
+        const priorityB = REGION_PRIORITY.has(b) ? REGION_PRIORITY.get(b) : Number.MAX_SAFE_INTEGER;
+        if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+        }
+        return collator.compare(a, b);
+    }
+
+    function uniquePush(list, value) {
+        if (value && !list.includes(value)) {
+            list.push(value);
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+    }
+
+    function formatStationLabel(name) {
+        return name.endsWith("역") ? name : `${name}역`;
+    }
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2000);
+    }
+
+    function renderRegionChips() {
+        regionChipsEl.innerHTML = "";
+
+        availableRegions.forEach(name => {
+            const chip = document.createElement("div");
+            chip.className = "chip" + (selectedRegions.has(name) ? " active" : "");
+            chip.textContent = name;
+            chip.addEventListener("click", () => {
+                if (selectedRegions.has(name)) {
+                    selectedRegions.delete(name);
+                } else {
+                    selectedRegions.add(name);
+                }
+                renderRegionChips();
+            });
+            regionChipsEl.appendChild(chip);
+        });
+
+        updateSelectedBadge();
+    }
+
+    function updateSelectedBadge() {
+        if (selectedRegions.size === availableRegions.length) {
+            selectedCountEl.textContent = "전체";
+        } else if (selectedRegions.size === 0) {
+            selectedCountEl.textContent = "미선택";
+        } else {
+            selectedCountEl.textContent = `${selectedRegions.size}개 선택`;
+        }
+    }
+
+    function openRegionPanel() {
+        isRegionOpen = true;
+        toggleRegionBtn.setAttribute("aria-expanded", "true");
+        regionPanel.style.display = "block";
+        regionActions.style.display = "flex";
+        toggleArrow.textContent = "▴";
+    }
+
+    function closeRegionPanel() {
+        isRegionOpen = false;
+        toggleRegionBtn.setAttribute("aria-expanded", "false");
+        regionPanel.style.display = "none";
+        regionActions.style.display = "none";
+        toggleArrow.textContent = "▾";
+    }
+
+    toggleRegionBtn.addEventListener("click", () => {
+        if (isRegionOpen) {
+            closeRegionPanel();
+        } else {
+            openRegionPanel();
+        }
+    });
+
+    selectAllBtn.addEventListener("click", () => {
+        availableRegions.forEach(region => selectedRegions.add(region));
+        renderRegionChips();
+    });
+
+    clearAllBtn.addEventListener("click", () => {
+        selectedRegions.clear();
+        renderRegionChips();
+    });
+
+    function parseCsvLine(line) {
+        const values = [];
+        let current = "";
+        let inQuotes = false;
+
+        for (let index = 0; index < line.length; index += 1) {
+            const char = line[index];
+            const nextChar = line[index + 1];
+
+            if (char === '"') {
+                if (inQuotes && nextChar === '"') {
+                    current += '"';
+                    index += 1;
+                } else {
+                    inQuotes = !inQuotes;
+                }
+                continue;
+            }
+
+            if (char === "," && !inQuotes) {
+                values.push(current.trim());
+                current = "";
+                continue;
+            }
+
+            current += char;
+        }
+
+        values.push(current.trim());
+        return values;
+    }
+
+    function decodeCsvBuffer(buffer) {
+        const decoders = [
+            () => new TextDecoder("utf-8", { fatal: true }).decode(buffer),
+            () => new TextDecoder("euc-kr", { fatal: true }).decode(buffer),
+            () => new TextDecoder("windows-949", { fatal: true }).decode(buffer)
+        ];
+
+        for (const decode of decoders) {
+            try {
+                return decode();
+            } catch (error) {
+                // Try the next decoder.
+            }
+        }
+
+        return new TextDecoder("utf-8").decode(buffer);
+    }
+
+    function canonicalizeLineName(value) {
+        const compact = String(value || "").trim().replace(/\s+/g, "");
+        if (!compact) {
+            return "";
+        }
+
+        if (/^[1-9]호선$/.test(compact)) {
+            return compact;
+        }
+
+        const normalized = compact.toLowerCase();
+
+        if (["공항", "인천국제공항선", "인천국제공항철도"].includes(compact)) return "공항";
+        if (["신분당", "신분당선"].includes(compact)) return "신분당";
+        if (["우이신설", "우이신설선"].includes(compact)) return "우이신설";
+        if (["신림선", "수도권경량도시철도신림선"].includes(compact)) return "신림선";
+        if (["김포골드라인", "김포도시철도"].includes(compact)) return "김포골드라인";
+        if (["경의중앙", "경의중앙선"].includes(compact)) return "경의중앙";
+        if (["수인분당", "수인분당선"].includes(compact)) return "수인분당";
+        if (["경춘", "경춘선"].includes(compact)) return "경춘";
+        if (["경강", "경강선"].includes(compact)) return "경강";
+        if (["에버라인", "용인경전철"].includes(compact)) return "에버라인";
+        if (["의정부", "의정부경전철"].includes(compact)) return "의정부";
+        if (normalized === "gtx-a") return "GTX-A";
+        if (compact.includes("서해선")) return "서해선";
+        if (compact.includes("자기부상")) return "자기부상";
+
+        return compact;
+    }
+
+    function buildStationsFromCsv(text) {
+        const rows = text
+            .split(/\r?\n/)
+            .map(line => line.trim())
+            .filter(Boolean);
+
+        if (rows.length <= 1) {
+            return {
+                stations: [],
+                regions: []
+            };
+        }
+
+        const groupedStations = new Map();
+        const regionNames = new Set();
+
+        rows.slice(1).forEach(line => {
+            const values = parseCsvLine(line);
+            if (values.length < 6) {
+                return;
+            }
+
+            const regionName = values[1]?.trim();
+            const operatorName = values[2]?.trim();
+            const lineName = values[3]?.trim();
+            const stationName = values[5]?.trim();
+
+            if (!regionName || !stationName) {
+                return;
+            }
+
+            regionNames.add(regionName);
+
+            const key = `${regionName}::${stationName}`;
+            if (!groupedStations.has(key)) {
+                groupedStations.set(key, {
+                    name: stationName,
+                    regionName,
+                    regions: [regionName],
+                    lines: [],
+                    operators: [],
+                    canonicalLines: []
+                });
+            }
+
+            const station = groupedStations.get(key);
+            uniquePush(station.lines, lineName);
+            uniquePush(station.operators, operatorName);
+            uniquePush(station.canonicalLines, canonicalizeLineName(lineName));
+        });
+
+        const mergedStations = new Map();
+
+        groupedStations.forEach(station => {
+            const canonicalLineKey = [...station.canonicalLines].sort(collator.compare).join("|");
+            const operatorKey = [...station.operators].sort(collator.compare).join("|");
+            const mergeKey = `${station.name}::${canonicalLineKey}::${operatorKey}`;
+
+            if (!mergedStations.has(mergeKey)) {
+                mergedStations.set(mergeKey, {
+                    id: mergeKey,
+                    name: station.name,
+                    regionName: station.regionName,
+                    regions: [...station.regions],
+                    lines: [...station.lines],
+                    operators: [...station.operators],
+                    canonicalLines: [...station.canonicalLines]
+                });
+                return;
+            }
+
+            const merged = mergedStations.get(mergeKey);
+            station.regions.forEach(region => uniquePush(merged.regions, region));
+            station.lines.forEach(line => uniquePush(merged.lines, line));
+            station.operators.forEach(operator => uniquePush(merged.operators, operator));
+            station.canonicalLines.forEach(line => uniquePush(merged.canonicalLines, line));
+        });
+
+        const regions = Array.from(regionNames).sort(compareRegions);
+        const stationsList = Array.from(mergedStations.values()).map(station => {
+            const orderedRegions = [...station.regions].sort(compareRegions);
+            return {
+                ...station,
+                regionName: orderedRegions[0] || "",
+                regions: orderedRegions
+            };
+        });
+
+        return {
+            stations: stationsList,
+            regions
+        };
+    }
+
+    async function loadCsv() {
+        try {
+            const response = await fetch("/static/files/subway.csv");
+            if (!response.ok) {
+                throw new Error(`Failed to load subway.csv: ${response.status}`);
+            }
+
+            const buffer = await response.arrayBuffer();
+            const text = decodeCsvBuffer(buffer);
+            const payload = buildStationsFromCsv(text);
+
+            stations = Array.isArray(payload.stations) ? payload.stations : [];
+            availableRegions = Array.isArray(payload.regions) ? payload.regions : [];
+
+            selectedRegions.clear();
+            availableRegions.forEach(region => selectedRegions.add(region));
+            renderRegionChips();
+
+            isCsvLoaded = stations.length > 0 && availableRegions.length > 0;
+            startBtn.disabled = !isCsvLoaded;
+            startBtn.textContent = isCsvLoaded
+                ? (hasStarted ? "다시하기" : "시작하기")
+                : "데이터 없음";
+
+            if (!isCsvLoaded) {
+                showToast("불러온 지하철 데이터가 비어 있습니다.");
+            }
+        } catch (error) {
+            console.error(error);
+            isCsvLoaded = false;
+            startBtn.disabled = true;
+            startBtn.textContent = "로드 실패";
+            alert("지하철역 데이터를 불러오지 못했습니다.");
+        }
+    }
+
+    function getFilteredStations() {
+        return stations.filter(station =>
+            Array.isArray(station.regions) &&
+            station.regions.some(region => selectedRegions.has(region))
+        );
+    }
+
+    function pickRandomStationFrom(list) {
+        const index = Math.floor(Math.random() * list.length);
+        return list[index];
+    }
+
+    function buildShareUrl(data) {
+        const payload = {
+            id: data.id,
+            regionName: data.regionName,
+            regions: Array.isArray(data.regions) ? data.regions : [],
+            name: data.name,
+            lines: Array.isArray(data.lines) ? data.lines : [],
+            selectedRegions: Array.from(selectedRegions)
+        };
+
+        const encoded = encodeURIComponent(JSON.stringify(payload));
+        return `${window.location.origin}${window.location.pathname}?result=${encoded}`;
+    }
+
+    function parseResultFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const encoded = params.get("result");
+        if (!encoded) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(decodeURIComponent(encoded));
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function applyFiltersFromPayload(payload) {
+        if (!Array.isArray(payload?.selectedRegions)) {
+            return;
+        }
+
+        selectedRegions.clear();
+        payload.selectedRegions.forEach(region => {
+            if (availableRegions.includes(region)) {
+                selectedRegions.add(region);
+            }
+        });
+
+        renderRegionChips();
+
+        if (selectedRegions.size !== availableRegions.length) {
+            openRegionPanel();
+        }
+    }
+
+    function buildResultText(data) {
+        const stationLabel = escapeHtml(formatStationLabel(data.name));
+        const visibleRegions = Array.isArray(data.regions)
+            ? data.regions.filter(region => selectedRegions.has(region))
+            : [];
+        const regionLabel = visibleRegions.length > 0
+            ? visibleRegions.join(" · ")
+            : (data.regionName || "");
+        const lines = Array.isArray(data.lines)
+            ? data.lines.map(escapeHtml).join(" · ")
+            : "";
+
+        let text = `오늘의 랜덤 지하철역은 <strong>${stationLabel}</strong>입니다.`;
+        if (regionLabel) {
+            text += `<small>권역: ${escapeHtml(regionLabel)}</small>`;
+        }
+        if (lines) {
+            text += `<small>노선: ${lines}</small>`;
+        }
+
+        return text;
+    }
+
+    function showResult(data) {
+        const resultHtml = buildResultText(data);
+        bubble.classList.remove("show");
+
+        setTimeout(() => {
+            bubble.innerHTML = resultHtml;
+            bubble.classList.add("show");
+        }, 80);
+
+        shareBtn.dataset.url = buildShareUrl(data);
+    }
+
+    startBtn.addEventListener("click", () => {
+        if (!isCsvLoaded) {
+            showToast("지하철역 데이터를 불러오는 중입니다. 잠시 후 다시 눌러주세요.");
+            return;
+        }
+
+        if (selectedRegions.size === 0) {
+            showToast("권역은 1개 이상 선택해 주세요.");
+            return;
+        }
+
+        if (!hasStarted) {
+            startBtn.textContent = "다시하기";
+            actions.style.display = "flex";
+            bubbleWrap.classList.remove("dis-none");
+            hasStarted = true;
+        }
+
+        const filteredStations = getFilteredStations();
+        if (!filteredStations.length) {
+            showToast("선택한 권역에 해당하는 역을 찾지 못했습니다.");
+            return;
+        }
+
+        const station = pickRandomStationFrom(filteredStations);
+        showResult(station);
+    });
+
+    saveImgBtn.addEventListener("click", () => {
+        if (!bubble.classList.contains("show")) {
+            return;
+        }
+
+        html2canvas(bubble, {
+            backgroundColor: null,
+            scale: 2
+        }).then(canvas => {
+            const link = document.createElement("a");
+            link.download = "random-subway-station.png";
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        }).catch(() => {
+            alert("이미지 저장 중 오류가 발생했습니다.");
+        });
+    });
+
+    shareBtn.addEventListener("click", async () => {
+        const urlToCopy = shareBtn.dataset.url || `${window.location.origin}${window.location.pathname}`;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(urlToCopy);
+                showToast("링크 복사 완료! 같은 결과와 권역 상태를 바로 공유할 수 있어요.");
+            } catch (error) {
+                showToast("링크 복사에 실패했습니다.");
+            }
+        } else {
+            showToast("이 브라우저에서는 자동 복사가 지원되지 않습니다.");
+        }
+    });
+
+    window.addEventListener("load", async () => {
+        await loadCsv();
+
+        const data = parseResultFromUrl();
+        if (!data) {
+            return;
+        }
+
+        applyFiltersFromPayload(data);
+
+        actions.style.display = "flex";
+        startBtn.textContent = "다시하기";
+        bubbleWrap.classList.remove("dis-none");
+        hasStarted = true;
+
+        showResult(data);
+
+        const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+        window.history.replaceState({}, "", cleanUrl);
+    });
+
+    document.getElementById("goMainBtn").addEventListener("click", () => {
+        window.location.href = "../index.html";
+    });
+</script>
+</body>
+</html>
