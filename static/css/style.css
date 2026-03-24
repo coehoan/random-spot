@@ -444,7 +444,12 @@ label {
 @media (max-width: 600px) {
 
     /* 카드/텍스트 크기(기존 600px 블록 통합) */
-    .page { padding: 14px; }
+    .page {
+        min-height: 100svh;
+        align-items: flex-start;
+        justify-content: center;
+        padding: max(12px, env(safe-area-inset-top)) 14px 24px;
+    }
     .card { padding: 24px 20px 28px; }
     .title { font-size: 22px; }
     .bubble { font-size: 15px; }
