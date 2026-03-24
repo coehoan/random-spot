@@ -1,0 +1,235 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+    background: #f5f6fa;
+    color: #111827;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+.page {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.card {
+    width: 100%;
+    max-width: 720px;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+    padding: 32px 28px 36px;
+}
+
+.go-main-wrap {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 16px;
+}
+
+.secondary-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    font-size: 12px;
+    cursor: pointer;
+    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.secondary-btn:hover {
+    background: #f3f4f6;
+}
+
+.hero {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #9ca3af;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.35;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #6b7280;
+}
+
+.section-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.section {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+}
+
+.section h2 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.section h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 14px 0 8px;
+}
+
+.section p,
+.section li {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #374151;
+}
+
+.section p + p,
+.section ul + p,
+.section .grid-2,
+.section .resource-links {
+    margin-top: 10px;
+}
+
+.section ul,
+.section ol {
+    margin: 6px 0 0 18px;
+}
+
+.section li + li {
+    margin-top: 2px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.mini-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 12px 14px;
+}
+
+.mini-card strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.resource-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.resource-links a {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 12px 14px;
+    text-decoration: none;
+    color: #374151;
+}
+
+.resource-links a strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.resource-links a span {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+.footer-links {
+    width: calc(100% - 28px);
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 14px 10px max(12px, env(safe-area-inset-bottom));
+    border-top: 1px solid #e5e7eb;
+    font-size: 12px;
+    color: #9ca3af;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    text-align: center;
+}
+
+.footer-links a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+    color: #6b7280;
+}
+
+@media (max-width: 720px) {
+    .page {
+        align-items: flex-start;
+        justify-content: center;
+        padding: max(12px, env(safe-area-inset-top)) 14px 24px;
+    }
+
+    .card {
+        padding: 24px 20px 28px;
+        border-radius: 20px;
+    }
+
+    .title {
+        font-size: 20px;
+    }
+
+    .subtitle {
+        font-size: 13px;
+    }
+
+    .grid-2,
+    .resource-links {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-links {
+        width: calc(100% - 28px);
+        font-size: 11px;
+        gap: 6px 10px;
+    }
+}

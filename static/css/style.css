@@ -12,10 +12,13 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
     background: #f5f6fa;
     color: #111827;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .page {
-    min-height: 100vh;
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -165,14 +168,28 @@ body {
 }
 
 .footer-links {
-    position: fixed;
-    right: 12px;
-    bottom: 12px;
-    font-size: 11px;
-    color: #aaa;
+    width: calc(100% - 28px);
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 14px 10px max(12px, env(safe-area-inset-bottom));
+    border-top: 1px solid #e5e7eb;
+    font-size: 12px;
+    color: #9ca3af;
     display: flex;
-    gap: 8px;
-    z-index: 999;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    text-align: center;
+}
+
+.footer-links a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.footer-links a:hover {
+    color: #6b7280;
+    text-decoration: underline;
 }
 
 .filters {
@@ -445,7 +462,6 @@ label {
 
     /* 카드/텍스트 크기(기존 600px 블록 통합) */
     .page {
-        min-height: 100svh;
         align-items: flex-start;
         justify-content: center;
         padding: max(12px, env(safe-area-inset-top)) 14px 24px;
@@ -491,6 +507,12 @@ label {
     .subtitle, .content-box p {
         font-size: 13px;
         line-height: 1.65;
+    }
+
+    .footer-links {
+        width: calc(100% - 28px);
+        font-size: 11px;
+        gap: 6px 10px;
     }
 }
 
