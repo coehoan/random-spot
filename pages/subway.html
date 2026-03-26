@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>랜덤 지하철역 뽑기</title>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
     <link rel="icon" href="/static/img/favicon.ico">
     <link rel="stylesheet" href="/static/css/style.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
@@ -889,12 +890,23 @@
             selectedRegions: Array.from(selectedRegions)
         };
 
-        const encoded = encodeURIComponent(JSON.stringify(payload));
-        return `${window.location.origin}${window.location.pathname}?result=${encoded}`;
+        const json = JSON.stringify(payload);
+        const z = LZString.compressToEncodedURIComponent(json);
+        return `${window.location.origin}${window.location.pathname}?z=${z}`;
     }
 
     function parseResultFromUrl() {
         const params = new URLSearchParams(window.location.search);
+        const z = params.get("z");
+        if (z) {
+            try {
+                const json = LZString.decompressFromEncodedURIComponent(z);
+                return json ? JSON.parse(json) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
         const encoded = params.get("result");
         if (!encoded) {
             return null;

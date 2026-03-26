@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>랜덤 교통수단 뽑기</title>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
     <link rel="icon" href="/static/img/favicon.ico">
     <link rel="stylesheet" href="/static/css/style.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
@@ -159,13 +160,24 @@
 
     // 데이터 → 공유용 URL (현재 주소 + 파라미터만 추가)
     function buildShareUrl(data) {
-        const encoded = encodeURIComponent(JSON.stringify(data));
-        return `${window.location.origin}${window.location.pathname}?result=${encoded}`;
+        const json = JSON.stringify(data);
+        const z = LZString.compressToEncodedURIComponent(json);
+        return `${window.location.origin}${window.location.pathname}?z=${z}`;
     }
 
     // URL에서 result 파라미터 읽어오기 (공유로 바로 들어온 경우용)
     function parseResultFromUrl() {
         const params = new URLSearchParams(window.location.search);
+        const z = params.get("z");
+        if (z) {
+            try {
+                const json = LZString.decompressFromEncodedURIComponent(z);
+                return json ? JSON.parse(json) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
         const encoded = params.get("result");
         if (!encoded) return null;
 
