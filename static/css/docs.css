@@ -204,9 +204,10 @@ body {
 
 @media (max-width: 720px) {
     .page {
+        flex: 0 0 auto;
         align-items: flex-start;
         justify-content: center;
-        padding: max(12px, env(safe-area-inset-top)) 14px 24px;
+        padding: max(12px, env(safe-area-inset-top)) 14px 12px;
     }
 
     .card {
@@ -229,6 +230,7 @@ body {
 
     .footer-links {
         width: calc(100% - 28px);
+        padding-top: 12px;
         font-size: 11px;
         gap: 6px 10px;
     }

@@ -498,9 +498,10 @@ label {
 
     /* 카드/텍스트 크기(기존 600px 블록 통합) */
     .page {
+        flex: 0 0 auto;
         align-items: flex-start;
         justify-content: center;
-        padding: max(12px, env(safe-area-inset-top)) 14px 24px;
+        padding: max(12px, env(safe-area-inset-top)) 14px 12px;
     }
     .card { padding: 24px 20px 28px; }
     .title { font-size: 22px; }
@@ -547,6 +548,7 @@ label {
 
     .footer-links {
         width: calc(100% - 28px);
+        padding-top: 12px;
         font-size: 11px;
         gap: 6px 10px;
     }
