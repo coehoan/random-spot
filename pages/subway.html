@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
             crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=ueeerx210i&submodules=geocoder"></script>
 </head>
 <body>
 
@@ -90,6 +91,12 @@
                 결과 공유하기
             </button>
         </div>
+
+        <section id="mapPanel" class="sample-map-panel dis-none">
+            <h2>네이버 지도</h2>
+            <p id="mapStatus" class="sample-map-status">결과가 나오면 해당 위치를 지도에 표시합니다.</p>
+            <div id="resultMap" class="sample-map-canvas"></div>
+        </section>
     </section>
 </div>
 
@@ -108,6 +115,9 @@
     const saveImgBtn = document.getElementById("saveImgBtn");
     const shareBtn = document.getElementById("shareBtn");
     const toast = document.getElementById("toast");
+    const mapPanel = document.getElementById("mapPanel");
+    const mapStatus = document.getElementById("mapStatus");
+    const resultMapEl = document.getElementById("resultMap");
 
     const regionChipsEl = document.getElementById("regionChips");
     const selectAllBtn = document.getElementById("selectAllBtn");
@@ -128,7 +138,14 @@
     let isCsvLoaded = false;
     let isRegionOpen = false;
 
+    let mapInstance = null;
+    let mapMarker = null;
+    let mapInfoWindow = null;
+    let mapRequestToken = 0;
+
     const selectedRegions = new Set();
+    let subwayCoordinateData = [];
+    let subwayCoordinateEntries = null;
 
     startBtn.disabled = true;
 
@@ -160,6 +177,156 @@
         return name.endsWith("역") ? name : `${name}역`;
     }
 
+    function canonicalizeOperatorName(value) {
+        const compact = String(value || "")
+            .trim()
+            .replace(/\s+/g, "")
+            .replaceAll("주식회사", "")
+            .replaceAll("㈜", "")
+            .replaceAll("(주)", "")
+            .replaceAll("(", "")
+            .replaceAll(")", "")
+            .replaceAll("-", "")
+            .replaceAll("서울특별시", "")
+            .replaceAll("부산광역시", "")
+            .replaceAll("인천광역시", "")
+            .replaceAll("경기도", "");
+
+        if (!compact) {
+            return "";
+        }
+
+        if (compact === "한국철도공사") return "코레일";
+        if (["김포골드라인운영", "김포골드라인에스알에스"].includes(compact)) return "김포골드라인";
+        if (["네오트랜스", "신분당선"].includes(compact)) return "신분당";
+        if (["용인경량전철", "용인경전철"].includes(compact)) return "용인경전철";
+        if (["우이신설경전철운영", "우이신설경전철"].includes(compact)) return "우이신설경전철";
+        if (compact === "부산김해경전철") return "부산김해경전철";
+        if (compact === "남서울경전철") return "남서울경전철";
+        if (compact === "서울시메트로9호선") return "서울시메트로9호선";
+        if (compact === "의정부경량전철") return "의정부경전철";
+
+        return compact;
+    }
+
+    function normalizeStationNameForMap(value) {
+        return String(value || "")
+            .trim()
+            .replace(/\s+/g, "")
+            .replace(/\([^)]*\)/g, "")
+            .replace(/[·ㆍ･．]/g, ".")
+            .replace(/^\.+|\.+$/g, "");
+    }
+
+    function buildStationNameVariants(value) {
+        const raw = String(value || "").trim();
+        const normalized = normalizeStationNameForMap(raw);
+        const variants = new Set();
+
+        function add(candidate) {
+            if (candidate) {
+                variants.add(candidate);
+            }
+        }
+
+        add(raw);
+        add(raw.replace(/\s+/g, ""));
+        add(normalized);
+        add(normalized.replaceAll(".", ""));
+
+        if (normalized.endsWith("역")) {
+            add(normalized.slice(0, -1));
+        } else if (normalized) {
+            add(`${normalized}역`);
+        }
+
+        return Array.from(variants);
+    }
+
+    function getSubwayCoordinateEntries() {
+        if (subwayCoordinateEntries) {
+            return subwayCoordinateEntries;
+        }
+
+        subwayCoordinateEntries = Array.isArray(subwayCoordinateData)
+            ? subwayCoordinateData.map(([name, line, operator, lat, lng, address]) => ({
+                name,
+                lineKey: canonicalizeLineName(line),
+                operatorKey: canonicalizeOperatorName(operator),
+                lat,
+                lng,
+                address,
+                variants: buildStationNameVariants(name)
+            }))
+            : [];
+
+        return subwayCoordinateEntries;
+    }
+
+    function findStationCoordinate(station) {
+        const nameVariants = new Set(buildStationNameVariants(station?.name || ""));
+        if (!nameVariants.size) {
+            return null;
+        }
+
+        const lineKeys = new Set(
+            (Array.isArray(station?.lines) ? station.lines : [])
+                .map(canonicalizeLineName)
+                .filter(Boolean)
+        );
+        const operatorKeys = new Set(
+            (Array.isArray(station?.operators) ? station.operators : [])
+                .map(canonicalizeOperatorName)
+                .filter(Boolean)
+        );
+
+        const candidates = getSubwayCoordinateEntries().filter(entry =>
+            entry.variants.some(variant => nameVariants.has(variant))
+        );
+
+        if (!candidates.length) {
+            return null;
+        }
+
+        const scored = candidates
+            .map(entry => {
+                let score = 0;
+
+                if (operatorKeys.has(entry.operatorKey)) {
+                    score += 120;
+                }
+
+                if (lineKeys.has(entry.lineKey)) {
+                    score += 90;
+                }
+
+                if (entry.name === station?.name) {
+                    score += 30;
+                }
+
+                if (entry.variants.some(variant => nameVariants.has(variant))) {
+                    score += 15;
+                }
+
+                return {
+                    entry,
+                    score
+                };
+            })
+            .sort((left, right) => right.score - left.score);
+
+        const best = scored[0];
+        if (!best) {
+            return null;
+        }
+
+        if (best.score < 90 && !(candidates.length === 1 && best.score >= 15)) {
+            return null;
+        }
+
+        return best.entry;
+    }
+
     function showToast(message) {
         toast.textContent = message;
         toast.classList.add("show");
@@ -167,6 +334,244 @@
         setTimeout(() => {
             toast.classList.remove("show");
         }, 2000);
+    }
+
+    function escapeMapHtml(value) {
+        return String(value || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+    }
+
+    function showMapPanel() {
+        mapPanel.classList.remove("dis-none");
+    }
+
+    function setMapStatus(message, isError = false) {
+        showMapPanel();
+        mapStatus.textContent = message;
+        mapStatus.classList.toggle("is-error", isError);
+    }
+
+    function hideMapCanvas() {
+        resultMapEl.classList.add("dis-none");
+    }
+
+    function showMapCanvas() {
+        resultMapEl.classList.remove("dis-none");
+    }
+
+    function ensureNaverMapSdk() {
+        if (!window.naver?.maps?.Service?.geocode) {
+            return Promise.reject(new Error("NAVER_MAP_SDK_UNAVAILABLE"));
+        }
+
+        return Promise.resolve(window.naver);
+    }
+
+    function ensureMapInstance() {
+        if (mapInstance) {
+            return mapInstance;
+        }
+
+        const defaultCenter = new naver.maps.LatLng(37.5665, 126.9780);
+        mapInstance = new naver.maps.Map("resultMap", {
+            center: defaultCenter,
+            zoom: 11,
+            zoomControl: true,
+            zoomControlOptions: {
+                position: naver.maps.Position.TOP_RIGHT
+            }
+        });
+
+        mapMarker = new naver.maps.Marker({
+            position: defaultCenter,
+            map: mapInstance
+        });
+
+        mapInfoWindow = new naver.maps.InfoWindow({
+            borderWidth: 1,
+            disableAnchor: false,
+            pixelOffset: new naver.maps.Point(0, -6)
+        });
+
+        return mapInstance;
+    }
+
+    function extractGeocodeItem(response) {
+        const item =
+            response?.v2?.addresses?.[0] ||
+            response?.addresses?.[0] ||
+            response?.result?.items?.[0] ||
+            null;
+
+        if (!item) {
+            return null;
+        }
+
+        const x = item.x ?? item.point?.x;
+        const y = item.y ?? item.point?.y;
+
+        if (x == null || y == null) {
+            return null;
+        }
+
+        return {
+            x: Number(x),
+            y: Number(y),
+            roadAddress: item.roadAddress || item.address || "",
+            jibunAddress: item.jibunAddress || ""
+        };
+    }
+
+    function geocodeByCandidates(candidates) {
+        return new Promise((resolve, reject) => {
+            const queue = candidates.filter(Boolean);
+
+            function run(index) {
+                if (index >= queue.length) {
+                    reject(new Error("GEOCODE_NO_RESULTS"));
+                    return;
+                }
+
+                const query = queue[index];
+                naver.maps.Service.geocode({
+                    query
+                }, (status, response) => {
+                    if (status !== naver.maps.Service.Status.OK) {
+                        run(index + 1);
+                        return;
+                    }
+
+                    const item = extractGeocodeItem(response);
+                    if (!item) {
+                        run(index + 1);
+                        return;
+                    }
+
+                    resolve({
+                        ...item,
+                        query
+                    });
+                });
+            }
+
+            run(0);
+        });
+    }
+
+    function buildStationMapQueries(station) {
+        const baseName = formatStationLabel(String(station?.name || "").trim());
+        if (!baseName) {
+            return [];
+        }
+
+        const lines = Array.isArray(station?.lines) ? station.lines.filter(Boolean) : [];
+        const primaryRegion = String(station?.regionName || "").trim();
+        const allRegions = Array.isArray(station?.regions) ? station.regions.filter(Boolean) : [];
+        const candidates = new Set([
+            baseName,
+            `${baseName} 지하철역`
+        ]);
+
+        if (primaryRegion) {
+            candidates.add(`${primaryRegion} ${baseName}`);
+            candidates.add(`${primaryRegion} ${baseName} 지하철역`);
+        }
+
+        allRegions.forEach(region => {
+            candidates.add(`${region} ${baseName}`);
+        });
+
+        lines.forEach(line => {
+            candidates.add(`${baseName} ${line}`);
+            candidates.add(`${baseName} 지하철역 ${line}`);
+            if (primaryRegion) {
+                candidates.add(`${primaryRegion} ${baseName} ${line}`);
+            }
+        });
+
+        return Array.from(candidates);
+    }
+
+    async function showStationOnMap(station) {
+        const requestToken = ++mapRequestToken;
+        const queries = buildStationMapQueries(station);
+        const stationLabel = formatStationLabel(station?.name || "");
+        const directCoordinate = findStationCoordinate(station);
+
+        if (!directCoordinate && !queries.length) {
+            hideMapCanvas();
+            setMapStatus("지도에 표시할 역명이 없습니다.", true);
+            return;
+        }
+
+        setMapStatus("네이버 지도에서 역 위치를 찾는 중입니다...");
+        hideMapCanvas();
+
+        try {
+            await ensureNaverMapSdk();
+
+            if (directCoordinate) {
+                if (requestToken !== mapRequestToken) {
+                    return;
+                }
+
+                showMapCanvas();
+
+                const map = ensureMapInstance();
+                const position = new naver.maps.LatLng(directCoordinate.lat, directCoordinate.lng);
+                map.setCenter(position);
+                map.setZoom(15);
+                mapMarker.setPosition(position);
+                mapMarker.setMap(map);
+
+                mapInfoWindow.setContent(`
+                    <div style="padding:10px 12px; min-width:180px; line-height:1.5;">
+                        <strong style="display:block; margin-bottom:4px;">${escapeMapHtml(stationLabel)}</strong>
+                        <div style="font-size:12px; color:#4b5563;">${escapeMapHtml(directCoordinate.address || stationLabel)}</div>
+                    </div>
+                `);
+                mapInfoWindow.open(map, mapMarker);
+
+                setMapStatus("지하철 좌표 데이터를 기준으로 위치를 네이버 지도에 표시했습니다.");
+                return;
+            }
+
+            const result = await geocodeByCandidates(queries);
+
+            if (requestToken !== mapRequestToken) {
+                return;
+            }
+
+            showMapCanvas();
+
+            const map = ensureMapInstance();
+            const position = new naver.maps.LatLng(result.y, result.x);
+            map.setCenter(position);
+            map.setZoom(15);
+            mapMarker.setPosition(position);
+            mapMarker.setMap(map);
+
+            mapInfoWindow.setContent(`
+                <div style="padding:10px 12px; min-width:180px; line-height:1.5;">
+                    <strong style="display:block; margin-bottom:4px;">${escapeMapHtml(stationLabel)}</strong>
+                    <div style="font-size:12px; color:#4b5563;">${escapeMapHtml(result.roadAddress || result.jibunAddress || result.query)}</div>
+                </div>
+            `);
+            mapInfoWindow.open(map, mapMarker);
+
+            setMapStatus("랜덤으로 나온 지하철역 위치를 네이버 지도에 표시했습니다.");
+        } catch (error) {
+            if (requestToken !== mapRequestToken) {
+                return;
+            }
+
+            hideMapCanvas();
+            setMapStatus("지도 좌표를 찾지 못했습니다. 현재 페이지 URL이 Web service URL로 등록되어 있는지, Dynamic Map과 Geocoding이 활성화되어 있는지 확인해 주세요.", true);
+        }
     }
 
     function renderRegionChips() {
@@ -408,6 +813,23 @@
         };
     }
 
+    async function loadCoordinateData() {
+        try {
+            const response = await fetch("/static/files/subway-coordinate-data.json");
+            if (!response.ok) {
+                throw new Error(`Failed to load subway-coordinate-data.json: ${response.status}`);
+            }
+
+            const payload = await response.json();
+            subwayCoordinateData = Array.isArray(payload) ? payload : [];
+            subwayCoordinateEntries = null;
+        } catch (error) {
+            console.error(error);
+            subwayCoordinateData = [];
+            subwayCoordinateEntries = null;
+        }
+    }
+
     async function loadCsv() {
         try {
             const response = await fetch("/static/files/subway.csv");
@@ -463,6 +885,7 @@
             regions: Array.isArray(data.regions) ? data.regions : [],
             name: data.name,
             lines: Array.isArray(data.lines) ? data.lines : [],
+            operators: Array.isArray(data.operators) ? data.operators : [],
             selectedRegions: Array.from(selectedRegions)
         };
 
@@ -536,6 +959,7 @@
         }, 80);
 
         shareBtn.dataset.url = buildShareUrl(data);
+        showStationOnMap(data);
     }
 
     startBtn.addEventListener("click", () => {
@@ -600,7 +1024,7 @@
     });
 
     window.addEventListener("load", async () => {
-        await loadCsv();
+        await Promise.all([loadCsv(), loadCoordinateData()]);
 
         const data = parseResultFromUrl();
         if (!data) {

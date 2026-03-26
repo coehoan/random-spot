@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
             crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=ueeerx210i&submodules=geocoder"></script>
 </head>
 <body>
 
@@ -104,6 +105,12 @@
                 결과 공유하기
             </button>
         </div>
+
+        <section id="mapPanel" class="sample-map-panel dis-none">
+            <h2>네이버 지도</h2>
+            <p id="mapStatus" class="sample-map-status">결과가 나오면 해당 위치를 지도에 표시합니다.</p>
+            <div id="resultMap" class="sample-map-canvas"></div>
+        </section>
     </section>
 </div>
 
@@ -122,6 +129,9 @@
     const saveImgBtn = document.getElementById("saveImgBtn");
     const shareBtn = document.getElementById("shareBtn");
     const toast = document.getElementById("toast");
+    const mapPanel = document.getElementById("mapPanel");
+    const mapStatus = document.getElementById("mapStatus");
+    const resultMapEl = document.getElementById("resultMap");
 
     const excludeEupMyeonDongEl = document.getElementById("excludeEupMyeonDong");
     const sidoChipsEl = document.getElementById("sidoChips");
@@ -141,6 +151,11 @@
     let isSidoOpen = false; // 처음엔 접힘
 
     // ✅ 광역시/도 목록 (CSV 첫 토큰 기준 매칭)
+    let mapInstance = null;
+    let mapMarker = null;
+    let mapInfoWindow = null;
+    let mapRequestToken = 0;
+
     const SIDO_LIST = [
         "서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시",
         "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도", "경상남도", "제주특별자치도"
@@ -164,6 +179,214 @@
         if (stepTimer) {
             clearInterval(stepTimer);
             stepTimer = null;
+        }
+    }
+
+    function escapeMapHtml(value) {
+        return String(value || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+    }
+
+    function showMapPanel() {
+        mapPanel.classList.remove("dis-none");
+    }
+
+    function setMapStatus(message, isError = false) {
+        showMapPanel();
+        mapStatus.textContent = message;
+        mapStatus.classList.toggle("is-error", isError);
+    }
+
+    function hideMapCanvas() {
+        resultMapEl.classList.add("dis-none");
+    }
+
+    function showMapCanvas() {
+        resultMapEl.classList.remove("dis-none");
+    }
+
+    function ensureNaverMapSdk() {
+        if (!window.naver?.maps?.Service?.geocode) {
+            return Promise.reject(new Error("NAVER_MAP_SDK_UNAVAILABLE"));
+        }
+
+        return Promise.resolve(window.naver);
+    }
+
+    function ensureMapInstance() {
+        if (mapInstance) {
+            return mapInstance;
+        }
+
+        const defaultCenter = new naver.maps.LatLng(36.3504, 127.3845);
+        mapInstance = new naver.maps.Map("resultMap", {
+            center: defaultCenter,
+            zoom: 7,
+            zoomControl: true,
+            zoomControlOptions: {
+                position: naver.maps.Position.TOP_RIGHT
+            }
+        });
+
+        mapMarker = new naver.maps.Marker({
+            position: defaultCenter,
+            map: mapInstance
+        });
+
+        mapInfoWindow = new naver.maps.InfoWindow({
+            borderWidth: 1,
+            disableAnchor: false,
+            pixelOffset: new naver.maps.Point(0, -6)
+        });
+
+        return mapInstance;
+    }
+
+    function extractGeocodeItem(response) {
+        const item =
+            response?.v2?.addresses?.[0] ||
+            response?.addresses?.[0] ||
+            response?.result?.items?.[0] ||
+            null;
+
+        if (!item) {
+            return null;
+        }
+
+        const x = item.x ?? item.point?.x;
+        const y = item.y ?? item.point?.y;
+
+        if (x == null || y == null) {
+            return null;
+        }
+
+        return {
+            x: Number(x),
+            y: Number(y),
+            roadAddress: item.roadAddress || item.address || "",
+            jibunAddress: item.jibunAddress || ""
+        };
+    }
+
+    function geocodeByCandidates(candidates) {
+        return new Promise((resolve, reject) => {
+            const queue = candidates.filter(Boolean);
+
+            function run(index) {
+                if (index >= queue.length) {
+                    reject(new Error("GEOCODE_NO_RESULTS"));
+                    return;
+                }
+
+                const query = queue[index];
+                naver.maps.Service.geocode({
+                    query
+                }, (status, response) => {
+                    if (status !== naver.maps.Service.Status.OK) {
+                        run(index + 1);
+                        return;
+                    }
+
+                    const item = extractGeocodeItem(response);
+                    if (!item) {
+                        run(index + 1);
+                        return;
+                    }
+
+                    resolve({
+                        ...item,
+                        query
+                    });
+                });
+            }
+
+            run(0);
+        });
+    }
+
+    function buildRegionMapQueries(region, excludeEupMyeonDong) {
+        const fullName = String(region?.name || "").trim();
+        if (!fullName) {
+            return [];
+        }
+
+        const displayParts = normalizeNameForDisplay(fullName, excludeEupMyeonDong);
+        const displayed = displayParts.join(" ").trim();
+        const parts = excludeEupMyeonDong
+            ? displayParts
+            : fullName.split(/\s+/).filter(Boolean);
+        const candidates = new Set();
+
+        if (displayed) {
+            candidates.add(displayed);
+        }
+
+        if (!excludeEupMyeonDong) {
+            candidates.add(fullName);
+        }
+
+        if (parts.length >= 3) {
+            candidates.add(parts.slice(0, 3).join(" "));
+        }
+
+        if (parts.length >= 2) {
+            candidates.add(parts.slice(0, 2).join(" "));
+        }
+
+        return Array.from(candidates);
+    }
+
+    async function showRegionOnMap(region, excludeEupMyeonDong) {
+        const requestToken = ++mapRequestToken;
+        const queries = buildRegionMapQueries(region, excludeEupMyeonDong);
+        const displayName = normalizeNameForDisplay(region?.name || "", excludeEupMyeonDong).join(" ").trim() || String(region?.name || "").trim();
+
+        if (!queries.length) {
+            hideMapCanvas();
+            setMapStatus("지도에 표시할 지역명이 없습니다.", true);
+            return;
+        }
+
+        setMapStatus("네이버 지도에서 위치를 찾는 중입니다...");
+        hideMapCanvas();
+
+        try {
+            await ensureNaverMapSdk();
+            const result = await geocodeByCandidates(queries);
+
+            if (requestToken !== mapRequestToken) {
+                return;
+            }
+
+            showMapCanvas();
+
+            const map = ensureMapInstance();
+            const position = new naver.maps.LatLng(result.y, result.x);
+            map.setCenter(position);
+            map.setZoom(12);
+            mapMarker.setPosition(position);
+            mapMarker.setMap(map);
+
+            mapInfoWindow.setContent(`
+                <div style="padding:10px 12px; min-width:180px; line-height:1.5;">
+                    <strong style="display:block; margin-bottom:4px;">${escapeMapHtml(displayName)}</strong>
+                    <div style="font-size:12px; color:#4b5563;">${escapeMapHtml(result.roadAddress || result.jibunAddress || result.query)}</div>
+                </div>
+            `);
+            mapInfoWindow.open(map, mapMarker);
+
+            setMapStatus("랜덤으로 나온 지역 위치를 네이버 지도에 표시했습니다.");
+        } catch (error) {
+            if (requestToken !== mapRequestToken) {
+                return;
+            }
+
+            hideMapCanvas();
+            setMapStatus("지도 좌표를 찾지 못했습니다. 네이버 클라우드에 현재 페이지 URL이 Web service URL로 등록되어 있는지, Dynamic Map과 Geocoding이 활성화되어 있는지 확인해 주세요.", true);
         }
     }
 
@@ -234,7 +457,6 @@
             startBtn.disabled = false;
             startBtn.textContent = hasStarted ? "다시하기" : "시작하기";
 
-            console.log("CSV 로딩 완료:", regions.length, "건");
         } catch (e) {
             console.error(e);
             isCsvLoaded = false;
@@ -276,8 +498,6 @@
 
     // ===== Share URL =====
     function buildShareUrl(payload) {
-        // const encoded = encodeURIComponent(JSON.stringify(payload));
-        // return `${window.location.origin}${window.location.pathname}?result=${encoded}`;
         const json = JSON.stringify(payload);
         const z = LZString.compressToEncodedURIComponent(json);
 
@@ -286,13 +506,6 @@
 
     function parseResultFromUrl() {
         const params = new URLSearchParams(window.location.search);
-        // const encoded = params.get("result");
-        // if (!encoded) return null;
-        // try {
-        //     return JSON.parse(decodeURIComponent(encoded));
-        // } catch {
-        //     return null;
-        // }
         const z = params.get('z');
         if (!z) return null;
 
@@ -380,6 +593,7 @@
     function showRegion(region) {
         const exclude = excludeEupMyeonDongEl.checked;
         showRegionStepByStep(region, exclude);
+        showRegionOnMap(region, exclude);
 
         // 공유 payload에 필터 포함
         const payload = {
@@ -472,6 +686,7 @@
             selectedSido: Array.from(selectedSido)
         };
         shareBtn.dataset.url = buildShareUrl(rebuilt);
+        showRegionOnMap({ code: payload.code, name: payload.name }, !!payload.excludeEupMyeonDong);
 
         const cleanUrl = `${window.location.origin}${window.location.pathname}`;
         window.history.replaceState({}, "", cleanUrl);
