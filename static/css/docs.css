@@ -203,14 +203,21 @@ body {
 }
 
 @media (max-width: 720px) {
+    body {
+        min-height: 100vh;
+        min-height: 100svh;
+    }
+
     .page {
-        flex: 0 0 auto;
-        align-items: flex-start;
+        flex: 1 0 auto;
+        align-items: stretch;
         justify-content: center;
-        padding: max(12px, env(safe-area-inset-top)) 14px 12px;
+        padding: max(12px, env(safe-area-inset-top)) 14px 0;
     }
 
     .card {
+        align-self: stretch;
+        min-height: 100%;
         padding: 24px 20px 28px;
         border-radius: 20px;
     }

@@ -495,15 +495,23 @@ label {
 
 /* 1) 모바일 공통(<= 600px) : 카드/텍스트/버튼 세로 100% 정렬 */
 @media (max-width: 600px) {
+    body {
+        min-height: 100vh;
+        min-height: 100svh;
+    }
 
     /* 카드/텍스트 크기(기존 600px 블록 통합) */
     .page {
-        flex: 0 0 auto;
-        align-items: flex-start;
+        flex: 1 0 auto;
+        align-items: stretch;
         justify-content: center;
-        padding: max(12px, env(safe-area-inset-top)) 14px 12px;
+        padding: max(12px, env(safe-area-inset-top)) 14px 0;
     }
-    .card { padding: 24px 20px 28px; }
+    .card {
+        align-self: stretch;
+        min-height: 100%;
+        padding: 24px 20px 28px;
+    }
     .title { font-size: 22px; }
     .bubble { font-size: 15px; }
 
