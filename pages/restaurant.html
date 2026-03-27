@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta property="og:image" content="https://randomspot.netlify.app/static/img/og-main.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <title>내 주변 랜덤 식당</title>
+    <link rel="icon" href="/static/img/favicon.ico">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/kakao-map-loader.js"></script>
+    <style>
+        .map-link-actions {
+            margin-top: 12px;
+            display: none;
+            gap: 10px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .map-link-actions .secondary-btn {
+            width: 100%;
+            justify-content: center;
+            font-weight: 700;
+            border-width: 0;
+        }
+
+        .map-link-actions.is-visible {
+            display: flex;
+        }
+
+        .brand-btn {
+            box-shadow: none;
+        }
+
+        .brand-btn:hover {
+            transform: translateY(-0.5px);
+            box-shadow: none;
+        }
+
+        .naver-map-btn {
+            background: #03c75a;
+            color: #ffffff;
+        }
+
+        .naver-map-btn:hover {
+            background: #02b350;
+        }
+
+        .kakao-map-btn {
+            background: #fee500;
+            color: #191919;
+        }
+
+        .kakao-map-btn:hover {
+            background: #f4db00;
+        }
+    </style>
+</head>
+<body>
+<div class="page tool-page">
+    <div id="toast" class="toast"></div>
+    <section class="card">
+        <div style="display:flex; justify-content:flex-start; margin-bottom: 12px;">
+            <button id="goMainBtn" class="secondary-btn go-main-btn">🏠 메인으로</button>
+        </div>
+
+        <h1 class="title">내 주변 랜덤 식당</h1>
+        <p class="subtitle">현재 위치 기준 반경 안 식당만 모아서, 그중 한 곳을 랜덤으로 추천합니다.</p>
+
+        <section class="content-box">
+            <h2>사용 방법</h2>
+            <p>
+                원하는 반경을 고른 뒤 “현재 위치에서 찾기”를 누르면, 지금 있는 곳 근처 식당 중 한 곳을 랜덤으로 추천합니다.
+                점심 메뉴가 안 떠오르거나 가까운 곳에서 빠르게 고르고 싶을 때 가볍게 써보세요.
+            </p>
+            <ul>
+                <li>100m, 500m처럼 좁은 반경은 후보가 적거나 없을 수 있으니 필요하면 범위를 넓혀보세요.</li>
+                <li>추천 결과가 나오면 지도에서 위치를 확인하고, 네이버지도나 카카오지도로 바로 열 수 있어요.</li>
+            </ul>
+            <p class="muted">
+                안내: 현재 위치 확인을 위해 브라우저 위치 권한 허용이 필요합니다.
+            </p>
+        </section>
+
+        <div class="filters">
+            <div class="filter-row-text" style="margin-bottom: 10px;">
+                <div class="filter-row-title">검색 반경 선택</div>
+                <div class="filter-row-desc">선택한 반경 안에서만 식당을 찾습니다.</div>
+            </div>
+
+            <div id="radiusChips" class="chips"></div>
+            <div id="inlineStatus" class="helper">위치 권한을 허용하면 현재 위치 기준으로 식당을 찾습니다.</div>
+        </div>
+
+        <button id="startBtn" style="margin-top: 18px">현재 위치에서 찾기</button>
+
+        <div id="bubbleWrap" class="bubble-wrap dis-none">
+            <div id="bubble" class="bubble"></div>
+        </div>
+
+        <section id="mapPanel" class="sample-map-panel dis-none">
+            <h2>카카오 지도</h2>
+            <p id="mapStatus" class="sample-map-status">결과가 나오면 현재 위치와 추천 식당을 지도에 표시합니다.</p>
+            <div id="resultMap" class="sample-map-canvas"></div>
+            <div id="mapLinkActions" class="map-link-actions">
+                <button id="openNaverBtn" class="secondary-btn brand-btn naver-map-btn" type="button">네이버지도로 열기</button>
+                <button id="openKakaoBtn" class="secondary-btn brand-btn kakao-map-btn" type="button">카카오지도로 열기</button>
+            </div>
+        </section>
+    </section>
+</div>
+
+<div class="footer-links">
+    <a href="../static/html/about.html">소개</a>
+    <a href="../static/html/contact.html">문의</a>
+    <a href="../static/html/terms.html">이용약관</a>
+    <a href="../static/html/privacy.html">개인정보처리방침</a>
+</div>
+
+<script>
+    const SEARCH_ENDPOINT = "/.netlify/functions/kakao-local-restaurant";
+    const RADIUS_OPTIONS = [
+        { label: "100m", value: 100 },
+        { label: "500m", value: 500 },
+        { label: "1km", value: 1000 },
+        { label: "3km", value: 3000 },
+        { label: "5km", value: 5000 }
+    ];
+
+    const toast = document.getElementById("toast");
+    const goMainBtn = document.getElementById("goMainBtn");
+    const radiusChipsEl = document.getElementById("radiusChips");
+    const inlineStatus = document.getElementById("inlineStatus");
+    const startBtn = document.getElementById("startBtn");
+    const bubbleWrap = document.getElementById("bubbleWrap");
+    const bubble = document.getElementById("bubble");
+    const mapPanel = document.getElementById("mapPanel");
+    const mapStatus = document.getElementById("mapStatus");
+    const resultMapEl = document.getElementById("resultMap");
+    const mapLinkActions = document.getElementById("mapLinkActions");
+    const openNaverBtn = document.getElementById("openNaverBtn");
+    const openKakaoBtn = document.getElementById("openKakaoBtn");
+
+    let selectedRadius = 1000;
+    let isBusy = false;
+    let mapRequestToken = 0;
+    let mapInstance = null;
+    let geocoder = null;
+    let currentMarker = null;
+    let restaurantMarker = null;
+    let radiusCircle = null;
+    let infoWindow = null;
+    let lastResult = null;
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2000);
+    }
+
+    function setInlineStatus(message, isError = false) {
+        inlineStatus.textContent = message;
+        inlineStatus.style.color = isError ? "#b91c1c" : "";
+    }
+
+    function showMapPanel() {
+        mapPanel.classList.remove("dis-none");
+    }
+
+    function setMapStatus(message, isError = false) {
+        showMapPanel();
+        mapStatus.textContent = message;
+        mapStatus.classList.toggle("is-error", isError);
+    }
+
+    function hideMapCanvas() {
+        resultMapEl.classList.add("dis-none");
+        mapLinkActions.classList.remove("is-visible");
+    }
+
+    function showMapCanvas() {
+        resultMapEl.classList.remove("dis-none");
+        mapLinkActions.classList.add("is-visible");
+    }
+
+    function escapeHtml(value) {
+        return String(value || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+    }
+
+    function isMobileDevice() {
+        return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+    function renderRadiusChips() {
+        radiusChipsEl.innerHTML = "";
+
+        RADIUS_OPTIONS.forEach(option => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = `chip${selectedRadius === option.value ? " active" : ""}`;
+            chip.textContent = option.label;
+            chip.addEventListener("click", () => {
+                selectedRadius = option.value;
+                renderRadiusChips();
+            });
+            radiusChipsEl.appendChild(chip);
+        });
+    }
+
+    function formatDistance(distanceMeters) {
+        return distanceMeters >= 1000
+            ? `${(distanceMeters / 1000).toFixed(distanceMeters % 1000 === 0 ? 0 : 1)}km`
+            : `${distanceMeters}m`;
+    }
+
+    function buildResultHtml(restaurant) {
+        const lines = [];
+        lines.push(`오늘의 랜덤 식당은 <strong>${escapeHtml(restaurant.title)}</strong>입니다.`);
+        lines.push(`<small>거리: ${escapeHtml(formatDistance(restaurant.distanceMeters))}</small>`);
+
+        if (restaurant.category) {
+            lines.push(`<small>분류: ${escapeHtml(restaurant.category)}</small>`);
+        }
+
+        if (restaurant.roadAddress || restaurant.address) {
+            lines.push(`<small>주소: ${escapeHtml(restaurant.roadAddress || restaurant.address)}</small>`);
+        }
+
+        return lines.join("");
+    }
+
+    function getCurrentPosition() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error("GEOLOCATION_UNSUPPORTED"));
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            });
+        });
+    }
+
+    async function ensureKakaoMapSdk() {
+        if (window.kakao?.maps?.Map && window.kakao?.maps?.services?.Geocoder) {
+            if (!geocoder) {
+                geocoder = new window.kakao.maps.services.Geocoder();
+            }
+            return window.kakao;
+        }
+
+        if (typeof window.loadKakaoMapSdk !== "function") {
+            throw new Error("KAKAO_MAP_SDK_LOADER_UNAVAILABLE");
+        }
+
+        const kakao = await window.loadKakaoMapSdk();
+        geocoder = new kakao.maps.services.Geocoder();
+        return kakao;
+    }
+
+    function reverseGeocodePosition(latitude, longitude) {
+        return new Promise((resolve, reject) => {
+            geocoder.coord2Address(longitude, latitude, (result, status) => {
+                if (status !== window.kakao.maps.services.Status.OK || !Array.isArray(result) || result.length === 0) {
+                    reject(new Error("REVERSE_GEOCODE_FAILED"));
+                    return;
+                }
+
+                const first = result[0] || {};
+                const road = first.road_address || {};
+                const address = first.address || {};
+                const label = road.address_name || address.address_name || "";
+
+                resolve({
+                    label,
+                    roadAddress: road.address_name || "",
+                    jibunAddress: address.address_name || ""
+                });
+            });
+        });
+    }
+
+    async function requestRandomRestaurant(payload) {
+        const candidates = typeof window.resolveNetlifyFunctionCandidates === "function"
+            ? window.resolveNetlifyFunctionCandidates(SEARCH_ENDPOINT)
+            : [SEARCH_ENDPOINT];
+
+        let lastError = null;
+
+        for (const url of candidates) {
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.error || "RESTAURANT_SEARCH_FAILED");
+                }
+
+                return data;
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        throw lastError || new Error("RESTAURANT_SEARCH_FAILED");
+    }
+
+    function ensureMapInstance() {
+        if (mapInstance) {
+            return mapInstance;
+        }
+
+        const kakao = window.kakao;
+        const defaultCenter = new kakao.maps.LatLng(37.5665, 126.9780);
+        mapInstance = new kakao.maps.Map(resultMapEl, {
+            center: defaultCenter,
+            level: 4
+        });
+
+        const mapTypeControl = new kakao.maps.MapTypeControl();
+        const zoomControl = new kakao.maps.ZoomControl();
+        mapInstance.addControl(mapTypeControl, kakao.maps.ControlPosition.TOPRIGHT);
+        mapInstance.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+
+        currentMarker = new kakao.maps.Marker({
+            position: defaultCenter,
+            title: "현재 위치"
+        });
+        currentMarker.setMap(mapInstance);
+
+        restaurantMarker = new kakao.maps.Marker({
+            position: defaultCenter,
+            title: "추천 식당"
+        });
+        restaurantMarker.setMap(mapInstance);
+
+        radiusCircle = new kakao.maps.Circle({
+            center: defaultCenter,
+            radius: selectedRadius,
+            strokeWeight: 2,
+            strokeColor: "#2563eb",
+            strokeOpacity: 0.45,
+            fillColor: "#93c5fd",
+            fillOpacity: 0.16
+        });
+        radiusCircle.setMap(mapInstance);
+
+        infoWindow = new kakao.maps.InfoWindow({
+            removable: false
+        });
+
+        return mapInstance;
+    }
+
+    function showRestaurantOnMap(currentLocation, restaurant) {
+        const kakao = window.kakao;
+        showMapCanvas();
+        const map = ensureMapInstance();
+        const currentPosition = new kakao.maps.LatLng(currentLocation.latitude, currentLocation.longitude);
+        const restaurantPosition = new kakao.maps.LatLng(restaurant.latitude, restaurant.longitude);
+        const bounds = new kakao.maps.LatLngBounds();
+
+        currentMarker.setPosition(currentPosition);
+        restaurantMarker.setPosition(restaurantPosition);
+
+        radiusCircle.setMap(null);
+        radiusCircle = new kakao.maps.Circle({
+            center: currentPosition,
+            radius: selectedRadius,
+            strokeWeight: 2,
+            strokeColor: "#2563eb",
+            strokeOpacity: 0.45,
+            fillColor: "#93c5fd",
+            fillOpacity: 0.16
+        });
+        radiusCircle.setMap(map);
+
+        bounds.extend(currentPosition);
+        bounds.extend(restaurantPosition);
+        map.relayout();
+        map.setBounds(bounds, 40, 40, 40, 40);
+
+        infoWindow.setContent(`
+            <div style="padding:10px 12px; min-width:200px; line-height:1.5;">
+                <strong style="display:block; margin-bottom:4px;">${escapeHtml(restaurant.title)}</strong>
+                <div style="font-size:12px; color:#4b5563;">${escapeHtml(restaurant.roadAddress || restaurant.address || "")}</div>
+                <div style="font-size:12px; color:#4b5563; margin-top:4px;">거리 ${escapeHtml(formatDistance(restaurant.distanceMeters))}</div>
+            </div>
+        `);
+        infoWindow.open(map, restaurantMarker);
+    }
+
+    function buildNaverUrls(restaurant) {
+        const query = `${restaurant.title} ${restaurant.roadAddress || restaurant.address || ""}`.trim();
+        const encodedName = encodeURIComponent(restaurant.title);
+        const encodedQuery = encodeURIComponent(query);
+        const appUrl = `nmap://place?lat=${restaurant.latitude}&lng=${restaurant.longitude}&name=${encodedName}&appname=randomspot.netlify.app`;
+        const webUrl = `https://map.naver.com/p/search/${encodedQuery}`;
+
+        return { appUrl, webUrl };
+    }
+
+    function buildKakaoUrl(restaurant) {
+        if (restaurant.placeUrl) {
+            return restaurant.placeUrl;
+        }
+
+        return `https://map.kakao.com/link/to/${encodeURIComponent(restaurant.title)},${restaurant.latitude},${restaurant.longitude}`;
+    }
+
+    function openExternalMap(urls) {
+        if (isMobileDevice() && urls.appUrl) {
+            const fallback = window.setTimeout(() => {
+                window.open(urls.webUrl, "_blank", "noopener,noreferrer");
+            }, 700);
+
+            window.location.href = urls.appUrl;
+            window.setTimeout(() => window.clearTimeout(fallback), 1200);
+            return;
+        }
+
+        window.open(urls.webUrl, "_blank", "noopener,noreferrer");
+    }
+
+    async function handleSearch() {
+        if (isBusy) {
+            return;
+        }
+
+        const requestToken = ++mapRequestToken;
+        isBusy = true;
+        startBtn.disabled = true;
+        startBtn.textContent = "현재 위치 확인 중..";
+        bubbleWrap.classList.add("dis-none");
+        hideMapCanvas();
+        setMapStatus("현재 위치와 식당 정보를 확인하는 중입니다...");
+
+        try {
+            await ensureKakaoMapSdk();
+
+            const position = await getCurrentPosition();
+            if (requestToken !== mapRequestToken) {
+                return;
+            }
+
+            const currentLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+            };
+
+            setInlineStatus("현재 위치 주소를 확인하는 중입니다.");
+            const currentAddress = await reverseGeocodePosition(currentLocation.latitude, currentLocation.longitude);
+            if (requestToken !== mapRequestToken) {
+                return;
+            }
+
+            setInlineStatus(`기준 위치: ${currentAddress.label || "현재 위치 기준"} · 반경 ${formatDistance(selectedRadius)}`);
+
+            const searchResult = await requestRandomRestaurant({
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+                radiusMeters: selectedRadius
+            });
+            if (requestToken !== mapRequestToken) {
+                return;
+            }
+
+            lastResult = {
+                currentLocation,
+                currentAddress,
+                restaurant: searchResult.restaurant
+            };
+
+            bubble.innerHTML = buildResultHtml(searchResult.restaurant);
+            bubbleWrap.classList.remove("dis-none");
+            bubble.classList.add("show");
+
+            setMapStatus(`반경 ${formatDistance(selectedRadius)} 안에서 찾은 식당 ${searchResult.meta?.candidateCount || 1}곳 중 한 곳을 표시했습니다.`);
+            showRestaurantOnMap(currentLocation, searchResult.restaurant);
+            startBtn.textContent = "다시 찾기";
+        } catch (error) {
+            console.error(error);
+            bubbleWrap.classList.add("dis-none");
+            hideMapCanvas();
+            lastResult = null;
+
+            let message = "현재 위치 기준 식당 검색 중 오류가 발생했습니다.";
+            if (error.message === "GEOLOCATION_UNSUPPORTED") {
+                message = "이 브라우저는 위치 정보를 지원하지 않습니다.";
+            } else if (error.message === "REVERSE_GEOCODE_FAILED") {
+                message = "현재 위치 주소를 확인하지 못했습니다.";
+            } else if (error.message === "KAKAO_MAP_SDK_LOADER_UNAVAILABLE" || error.message === "KAKAO_MAP_SDK_UNAVAILABLE") {
+                message = "카카오맵 SDK를 불러오지 못했습니다.";
+            } else if (error.message === "KAKAO_MAP_JAVASCRIPT_KEY_MISSING") {
+                message = "카카오맵 JavaScript 키가 설정되지 않았습니다.";
+            } else if (error.message) {
+                message = error.message;
+            }
+
+            setInlineStatus(message, true);
+            setMapStatus(message, true);
+            showToast(message);
+            startBtn.textContent = "현재 위치에서 찾기";
+        } finally {
+            isBusy = false;
+            startBtn.disabled = false;
+        }
+    }
+
+    goMainBtn.addEventListener("click", () => {
+        window.location.href = "../index.html";
+    });
+
+    startBtn.addEventListener("click", handleSearch);
+
+    openNaverBtn.addEventListener("click", () => {
+        if (!lastResult?.restaurant) {
+            return;
+        }
+
+        openExternalMap(buildNaverUrls(lastResult.restaurant));
+    });
+
+    openKakaoBtn.addEventListener("click", () => {
+        if (!lastResult?.restaurant) {
+            return;
+        }
+
+        window.open(buildKakaoUrl(lastResult.restaurant), "_blank", "noopener,noreferrer");
+    });
+
+    window.addEventListener("load", () => {
+        renderRadiusChips();
+        hideMapCanvas();
+
+        if (typeof window.loadKakaoMapSdk === "function") {
+            window.loadKakaoMapSdk().catch(() => {});
+        }
+    });
+</script>
+</body>
+</html>
