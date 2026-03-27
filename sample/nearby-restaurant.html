@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta property="og:image" content="https://randomspot.netlify.app/static/img/og-main.png" />
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>내 주변 랜덤 식당</title>
+    <link rel="icon" href="/static/img/favicon.ico">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/naver-map-loader.js"></script>
+</head>
+<body>
+
+<div class="page tool-page">
+    <div id="toast" class="toast"></div>
+    <section class="card">
+        <div style="display:flex; justify-content:flex-start; margin-bottom: 12px;">
+            <button id="goMainBtn" class="secondary-btn go-main-btn">🏠 메인으로</button>
+        </div>
+
+        <h1 class="title">내 주변 랜덤 식당</h1>
+        <p class="subtitle">현재 위치를 기준으로 선택한 범위 안에서 식당 한 곳을 랜덤으로 골라봅니다.</p>
+
+        <section class="content-box">
+            <h2>사용 방법</h2>
+            <p>
+                범위를 고른 뒤 버튼을 누르면 현재 위치를 확인하고, 그 범위 안에서 랜덤 식당 한 곳을 골라 네이버 지도에 표시합니다.
+                가까운 곳에서 바로 식사 장소를 정하고 싶을 때 가볍게 사용해 보세요.
+            </p>
+            <ul>
+                <li>100m, 500m처럼 좁은 범위는 후보가 없을 수 있으니 안 나오면 범위를 넓혀보세요.</li>
+                <li>브라우저 위치 권한이 필요하며, HTTPS 또는 localhost 환경에서만 정상 동작합니다.</li>
+            </ul>
+            <p class="muted">
+                안내: 지도 표시는 네이버 지도, 식당 후보 검색은 네이버 지역 검색 API를 사용합니다.
+            </p>
+        </section>
+
+        <div class="filters">
+            <div class="filter-row-text" style="margin-bottom: 10px;">
+                <div class="filter-row-title">검색 반경 선택</div>
+                <div class="filter-row-desc">기본값은 1km이며, 선택한 반경 안에서만 식당을 고릅니다.</div>
+            </div>
+
+            <div id="radiusChips" class="chips"></div>
+            <div id="inlineStatus" class="helper">위치 권한을 허용하면 현재 위치 기준으로 식당을 찾습니다.</div>
+        </div>
+
+        <button id="startBtn" style="margin-top: 18px">현재 위치에서 뽑기</button>
+
+        <div id="bubbleWrap" class="bubble-wrap dis-none">
+            <div id="bubble" class="bubble"></div>
+        </div>
+
+        <section id="mapPanel" class="sample-map-panel dis-none">
+            <h2>네이버 지도</h2>
+            <p id="mapStatus" class="sample-map-status">결과가 나오면 해당 식당과 현재 위치를 지도에 표시합니다.</p>
+            <div id="resultMap" class="sample-map-canvas"></div>
+        </section>
+    </section>
+</div>
+
+<div class="footer-links">
+    <a href="../static/html/about.html" style="color:#aaa; text-decoration:none;">소개</a>
+    <a href="../static/html/contact.html" style="color:#aaa; text-decoration:none;">문의</a>
+    <a href="../static/html/terms.html" style="color:#aaa; text-decoration:none;">이용약관</a>
+    <a href="../static/html/privacy.html" style="color:#aaa; text-decoration:none;">개인정보처리방침</a>
+</div>
+
+<script>
+    const SEARCH_ENDPOINT = "/.netlify/functions/naver-local-search";
+    const RADIUS_OPTIONS = [
+        { label: "100m", value: 100 },
+        { label: "500m", value: 500 },
+        { label: "1km", value: 1000 },
+        { label: "3km", value: 3000 },
+        { label: "5km", value: 5000 }
+    ];
+
+    const startBtn = document.getElementById("startBtn");
+    const goMainBtn = document.getElementById("goMainBtn");
+    const radiusChipsEl = document.getElementById("radiusChips");
+    const inlineStatus = document.getElementById("inlineStatus");
+    const bubbleWrap = document.getElementById("bubbleWrap");
+    const bubble = document.getElementById("bubble");
+    const toast = document.getElementById("toast");
+    const mapPanel = document.getElementById("mapPanel");
+    const mapStatus = document.getElementById("mapStatus");
+    const resultMapEl = document.getElementById("resultMap");
+
+    let selectedRadius = 1000;
+    let mapInstance = null;
+    let currentMarker = null;
+    let restaurantMarker = null;
+    let radiusCircle = null;
+    let mapInfoWindow = null;
+    let mapRequestToken = 0;
+    let isBusy = false;
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2000);
+    }
+
+    function setInlineStatus(message, isError = false) {
+        inlineStatus.textContent = message;
+        inlineStatus.style.color = isError ? "#b91c1c" : "";
+    }
+
+    function showMapPanel() {
+        mapPanel.classList.remove("dis-none");
+    }
+
+    function setMapStatus(message, isError = false) {
+        showMapPanel();
+        mapStatus.textContent = message;
+        mapStatus.classList.toggle("is-error", isError);
+    }
+
+    function hideMapCanvas() {
+        resultMapEl.classList.add("dis-none");
+    }
+
+    function showMapCanvas() {
+        resultMapEl.classList.remove("dis-none");
+    }
+
+    function escapeHtml(value) {
+        return String(value || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+    }
+
+    function renderRadiusChips() {
+        radiusChipsEl.innerHTML = "";
+
+        RADIUS_OPTIONS.forEach(option => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = `chip${selectedRadius === option.value ? " active" : ""}`;
+            chip.textContent = option.label;
+            chip.addEventListener("click", () => {
+                selectedRadius = option.value;
+                renderRadiusChips();
+            });
+            radiusChipsEl.appendChild(chip);
+        });
+    }
+
+    function formatDistance(value) {
+        return value >= 1000
+            ? `${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}km`
+            : `${value}m`;
+    }
+
+    function buildResultHtml(restaurant, context) {
+        const lines = [];
+        lines.push(`오늘의 랜덤 식당은 <strong>${escapeHtml(restaurant.title)}</strong>입니다.`);
+        lines.push(`<small>거리: ${escapeHtml(formatDistance(restaurant.distanceMeters))}</small>`);
+
+        if (restaurant.category) {
+            lines.push(`<small>분류: ${escapeHtml(restaurant.category)}</small>`);
+        }
+
+        if (restaurant.roadAddress || restaurant.address) {
+            lines.push(`<small>주소: ${escapeHtml(restaurant.roadAddress || restaurant.address)}</small>`);
+        }
+
+        if (context?.label) {
+            lines.push(`<small>기준 위치: ${escapeHtml(context.label)}</small>`);
+        }
+
+        return lines.join("");
+    }
+
+    function getCurrentPosition() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error("GEOLOCATION_UNSUPPORTED"));
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            });
+        });
+    }
+
+    function extractReverseGeocodeContext(response) {
+        const legacyItems = Array.isArray(response?.result?.items) ? response.result.items : [];
+        if (legacyItems.length > 0) {
+            const landItem = legacyItems.find(item => item?.isRoadAddress === false) || legacyItems[0];
+            const roadItem = legacyItems.find(item => item?.isRoadAddress === true) || legacyItems[0];
+            const detail = landItem?.addrdetail || roadItem?.addrdetail || {};
+
+            return {
+                sido: String(detail.sido || "").trim(),
+                sigugun: String(detail.sigugun || "").replaceAll(",", " ").replace(/\s+/g, " ").trim(),
+                dongmyun: String(detail.dongmyun || "").replaceAll(",", " ").replace(/\s+/g, " ").trim(),
+                label: String(roadItem?.address || landItem?.address || "").trim()
+            };
+        }
+
+        const v2Results = Array.isArray(response?.v2?.results) ? response.v2.results : [];
+        if (v2Results.length > 0) {
+            const road = v2Results.find(item => item?.name === "roadaddr") || v2Results[0];
+            const land = v2Results.find(item => item?.name === "addr") || road;
+            const region = land?.region || road?.region || {};
+
+            const sido = String(region?.area1?.name || "").trim();
+            const sigugun = [region?.area2?.name, region?.area3?.name]
+                .filter(Boolean)
+                .join(" ")
+                .replace(/\s+/g, " ")
+                .trim();
+            const dongmyun = String(land?.land?.name || region?.area4?.name || "").trim();
+
+            return {
+                sido,
+                sigugun,
+                dongmyun,
+                label: [sido, sigugun, dongmyun].filter(Boolean).join(" ")
+            };
+        }
+
+        return {
+            sido: "",
+            sigugun: "",
+            dongmyun: "",
+            label: ""
+        };
+    }
+
+    function reverseGeocodePosition(latitude, longitude) {
+        return new Promise((resolve, reject) => {
+            naver.maps.Service.reverseGeocode({
+                location: new naver.maps.LatLng(latitude, longitude)
+            }, (status, response) => {
+                if (status !== naver.maps.Service.Status.OK) {
+                    reject(new Error("REVERSE_GEOCODE_FAILED"));
+                    return;
+                }
+
+                resolve(extractReverseGeocodeContext(response));
+            });
+        });
+    }
+
+    async function requestRandomRestaurant(payload) {
+        const candidates = typeof window.resolveNetlifyFunctionCandidates === "function"
+            ? window.resolveNetlifyFunctionCandidates(SEARCH_ENDPOINT)
+            : [SEARCH_ENDPOINT];
+
+        let lastError = null;
+
+        for (const url of candidates) {
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.error || "RESTAURANT_SEARCH_FAILED");
+                }
+
+                return data;
+            } catch (error) {
+                lastError = error;
+            }
+        }
+
+        throw lastError || new Error("RESTAURANT_SEARCH_FAILED");
+    }
+
+    async function ensureNaverMapSdk() {
+        if (window.naver?.maps?.Service?.reverseGeocode) {
+            return window.naver;
+        }
+
+        if (typeof window.loadNaverMapSdk !== "function") {
+            throw new Error("NAVER_MAP_SDK_LOADER_UNAVAILABLE");
+        }
+
+        const naver = await window.loadNaverMapSdk({
+            submodules: ["geocoder"]
+        });
+
+        if (!naver?.maps?.Service?.reverseGeocode) {
+            throw new Error("NAVER_MAP_SDK_UNAVAILABLE");
+        }
+
+        return naver;
+    }
+
+    function ensureMapInstance() {
+        if (mapInstance) {
+            return mapInstance;
+        }
+
+        const defaultCenter = new naver.maps.LatLng(37.5665, 126.9780);
+        mapInstance = new naver.maps.Map("resultMap", {
+            center: defaultCenter,
+            zoom: 15,
+            zoomControl: true,
+            zoomControlOptions: {
+                position: naver.maps.Position.TOP_RIGHT
+            }
+        });
+
+        currentMarker = new naver.maps.Marker({
+            position: defaultCenter,
+            map: mapInstance,
+            title: "현재 위치",
+            icon: {
+                content: '<div style="width:14px;height:14px;border-radius:999px;background:#2563eb;border:2px solid #ffffff;box-shadow:0 0 0 2px rgba(37,99,235,0.2);"></div>',
+                anchor: new naver.maps.Point(7, 7)
+            }
+        });
+
+        restaurantMarker = new naver.maps.Marker({
+            position: defaultCenter,
+            map: mapInstance,
+            title: "랜덤 식당"
+        });
+
+        radiusCircle = new naver.maps.Circle({
+            map: mapInstance,
+            center: defaultCenter,
+            radius: selectedRadius,
+            strokeColor: "#2563eb",
+            strokeOpacity: 0.35,
+            strokeWeight: 1.5,
+            fillColor: "#93c5fd",
+            fillOpacity: 0.12
+        });
+
+        mapInfoWindow = new naver.maps.InfoWindow({
+            borderWidth: 1,
+            disableAnchor: false,
+            pixelOffset: new naver.maps.Point(0, -6)
+        });
+
+        return mapInstance;
+    }
+
+    function showRestaurantOnMap(currentLocation, restaurant) {
+        showMapCanvas();
+        const map = ensureMapInstance();
+        const currentPosition = new naver.maps.LatLng(currentLocation.latitude, currentLocation.longitude);
+        const restaurantPosition = new naver.maps.LatLng(restaurant.latitude, restaurant.longitude);
+
+        currentMarker.setPosition(currentPosition);
+        restaurantMarker.setPosition(restaurantPosition);
+        radiusCircle.setCenter(currentPosition);
+        radiusCircle.setRadius(selectedRadius);
+
+        const bounds = new naver.maps.LatLngBounds();
+        bounds.extend(currentPosition);
+        bounds.extend(restaurantPosition);
+        map.fitBounds(bounds, {
+            top: 48,
+            right: 32,
+            bottom: 48,
+            left: 32
+        });
+
+        mapInfoWindow.setContent(`
+            <div style="padding:10px 12px; min-width:200px; line-height:1.5;">
+                <strong style="display:block; margin-bottom:4px;">${escapeHtml(restaurant.title)}</strong>
+                <div style="font-size:12px; color:#4b5563;">${escapeHtml(restaurant.roadAddress || restaurant.address || "")}</div>
+                <div style="font-size:12px; color:#4b5563; margin-top:4px;">거리 ${escapeHtml(formatDistance(restaurant.distanceMeters))}</div>
+            </div>
+        `);
+        mapInfoWindow.open(map, restaurantMarker);
+    }
+
+    async function handleSearch() {
+        if (isBusy) {
+            return;
+        }
+
+        const requestToken = ++mapRequestToken;
+        isBusy = true;
+        startBtn.disabled = true;
+        startBtn.textContent = "위치 확인 중...";
+        bubbleWrap.classList.add("dis-none");
+        hideMapCanvas();
+        setMapStatus("현재 위치와 식당 후보를 확인하는 중입니다...");
+
+        try {
+            await ensureNaverMapSdk();
+
+            const position = await getCurrentPosition();
+            if (requestToken !== mapRequestToken) {
+                return;
+            }
+
+            const currentLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+            };
+
+            setInlineStatus("현재 위치를 확인했고, 동네 정보를 불러오는 중입니다.");
+            const addressContext = await reverseGeocodePosition(currentLocation.latitude, currentLocation.longitude);
+            if (requestToken !== mapRequestToken) {
+                return;
+            }
+
+            const searchResult = await requestRandomRestaurant({
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+                radiusMeters: selectedRadius,
+                addressContext
+            });
+            if (requestToken !== mapRequestToken) {
+                return;
+            }
+
+            const restaurant = searchResult.restaurant;
+            bubble.innerHTML = buildResultHtml(restaurant, addressContext);
+            bubbleWrap.classList.remove("dis-none");
+            bubble.classList.add("show");
+
+            setInlineStatus(`기준 위치: ${addressContext.label || "현재 위치 기준"} · 반경 ${formatDistance(selectedRadius)}`);
+            setMapStatus(`반경 ${formatDistance(selectedRadius)} 안에서 찾은 식당 ${searchResult.meta?.candidateCount || 1}곳 중 하나를 표시했습니다.`);
+            showRestaurantOnMap(currentLocation, restaurant);
+            startBtn.textContent = "다시 뽑기";
+        } catch (error) {
+            console.error(error);
+            bubbleWrap.classList.add("dis-none");
+            hideMapCanvas();
+
+            let message = "현재 위치 기반 식당 검색 중 오류가 발생했습니다.";
+            if (error.message === "GEOLOCATION_UNSUPPORTED") {
+                message = "이 브라우저는 위치 정보를 지원하지 않습니다.";
+            } else if (error.message === "REVERSE_GEOCODE_FAILED") {
+                message = "현재 위치의 주소 정보를 확인하지 못했습니다.";
+            } else if (error.message === "NAVER_MAP_SDK_LOADER_UNAVAILABLE" || error.message === "NAVER_MAP_SDK_UNAVAILABLE") {
+                message = "네이버 지도 SDK를 불러오지 못했습니다.";
+            } else if (error.message === "NAVER_MAP_CLIENT_ID_MISSING") {
+                message = "네이버 지도 Client ID가 설정되지 않았습니다.";
+            } else if (error.message === "선택한 범위 안에서 식당을 찾지 못했습니다. 범위를 넓혀 다시 시도해 주세요.") {
+                message = error.message;
+            }
+
+            setInlineStatus(message, true);
+            setMapStatus(message, true);
+            showToast(message);
+            startBtn.textContent = "현재 위치에서 뽑기";
+        } finally {
+            isBusy = false;
+            startBtn.disabled = false;
+        }
+    }
+
+    goMainBtn.addEventListener("click", () => {
+        window.location.href = "../index.html";
+    });
+
+    startBtn.addEventListener("click", handleSearch);
+
+    renderRadiusChips();
+    hideMapCanvas();
+    setInlineStatus("위치 권한을 허용하면 현재 위치 기준으로 식당을 찾습니다.");
+</script>
+
+</body>
+</html>

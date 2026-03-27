@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
             crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=ueeerx210i&submodules=geocoder"></script>
+    <script src="/static/js/naver-map-loader.js"></script>
 </head>
 <body>
 
@@ -365,11 +365,23 @@
     }
 
     function ensureNaverMapSdk() {
-        if (!window.naver?.maps?.Service?.geocode) {
-            return Promise.reject(new Error("NAVER_MAP_SDK_UNAVAILABLE"));
+        if (window.naver?.maps?.Service?.geocode) {
+            return Promise.resolve(window.naver);
         }
 
-        return Promise.resolve(window.naver);
+        if (typeof window.loadNaverMapSdk !== "function") {
+            return Promise.reject(new Error("NAVER_MAP_SDK_LOADER_UNAVAILABLE"));
+        }
+
+        return window.loadNaverMapSdk({
+            submodules: ["geocoder"]
+        }).then(naver => {
+            if (!naver?.maps?.Service?.geocode) {
+                throw new Error("NAVER_MAP_SDK_UNAVAILABLE");
+            }
+
+            return naver;
+        });
     }
 
     function ensureMapInstance() {
@@ -1036,6 +1048,10 @@
     });
 
     window.addEventListener("load", async () => {
+        if (typeof window.loadNaverMapSdk === "function") {
+            window.loadNaverMapSdk({ submodules: ["geocoder"] }).catch(() => {});
+        }
+
         await Promise.all([loadCsv(), loadCoordinateData()]);
 
         const data = parseResultFromUrl();
