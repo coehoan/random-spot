@@ -129,8 +129,7 @@
         { label: "100m", value: 100 },
         { label: "500m", value: 500 },
         { label: "1km", value: 1000 },
-        { label: "3km", value: 3000 },
-        { label: "5km", value: 5000 }
+        { label: "3km", value: 3000 }
     ];
 
     const toast = document.getElementById("toast");
@@ -535,7 +534,7 @@
             bubbleWrap.classList.remove("dis-none");
             bubble.classList.add("show");
 
-            setMapStatus(`반경 ${formatDistance(selectedRadius)} 안에서 찾은 식당 ${searchResult.meta?.candidateCount || 1}곳 중 한 곳을 표시했습니다.`);
+            setMapStatus(`반경 ${formatDistance(selectedRadius)} 안에서 찾은 식당 중 한 곳을 표시했습니다.`);
             showRestaurantOnMap(currentLocation, searchResult.restaurant);
             startBtn.textContent = "다시 찾기";
         } catch (error) {

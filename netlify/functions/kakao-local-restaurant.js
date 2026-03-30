@@ -5,7 +5,7 @@ loadLocalEnv();
 const SEARCH_ENDPOINT = "https://dapi.kakao.com/v2/local/search/category.json";
 const RESTAURANT_CATEGORY_CODE = "FD6";
 const PAGE_SIZE = 15;
-const MAX_PAGES = 3;
+const MAX_PAGEABLE_COUNT = 45;
 
 function json(statusCode, payload) {
     return {
@@ -41,7 +41,7 @@ async function searchRestaurantsPage({ latitude, longitude, radiusMeters, page, 
     url.searchParams.set("x", String(longitude));
     url.searchParams.set("y", String(latitude));
     url.searchParams.set("radius", String(radiusMeters));
-    url.searchParams.set("sort", "distance");
+    url.searchParams.set("sort", "accuracy");
     url.searchParams.set("page", String(page));
     url.searchParams.set("size", String(PAGE_SIZE));
 
@@ -137,7 +137,8 @@ exports.handler = async function handler(event) {
         });
 
         const pageableCount = Math.max(0, Number(firstPage.meta?.pageable_count || 0));
-        const totalPages = Math.min(MAX_PAGES, Math.max(1, Math.ceil(pageableCount / PAGE_SIZE)));
+        const maxDocuments = Math.min(MAX_PAGEABLE_COUNT, pageableCount);
+        const totalPages = Math.max(1, Math.ceil(maxDocuments / PAGE_SIZE));
         const pagePromises = [];
 
         for (let page = 2; page <= totalPages; page += 1) {
@@ -187,7 +188,8 @@ exports.handler = async function handler(event) {
             restaurant,
             meta: {
                 radiusMeters,
-                candidateCount: candidates.length
+                candidateCount: candidates.length,
+                pageableCount
             }
         });
     } catch (error) {
