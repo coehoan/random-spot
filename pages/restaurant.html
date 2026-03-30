@@ -406,11 +406,15 @@
         infoWindow.open(map, restaurantMarker);
     }
 
+    function buildNaverQuery(restaurant) {
+        const shortAddress = restaurant.roadAddress || restaurant.address || "";
+        return `${restaurant.title} ${shortAddress}`.trim();
+    }
+
     function buildNaverUrls(restaurant) {
-        const query = `${restaurant.title} ${restaurant.roadAddress || restaurant.address || ""}`.trim();
-        const encodedName = encodeURIComponent(restaurant.title);
+        const query = buildNaverQuery(restaurant);
         const encodedQuery = encodeURIComponent(query);
-        const appUrl = `nmap://place?lat=${restaurant.latitude}&lng=${restaurant.longitude}&name=${encodedName}&appname=randomspot.netlify.app`;
+        const appUrl = `nmap://search?query=${encodedQuery}&appname=randomspot.netlify.app`;
         const webUrl = `https://map.naver.com/p/search/${encodedQuery}`;
 
         return { appUrl, webUrl };
@@ -426,12 +430,48 @@
 
     function openExternalMap(urls) {
         if (isMobileDevice() && urls.appUrl) {
-            const fallback = window.setTimeout(() => {
-                window.open(urls.webUrl, "_blank", "noopener,noreferrer");
-            }, 700);
+            let didLeavePage = false;
+            let fallbackTimer = null;
+
+            const cleanup = () => {
+                document.removeEventListener("visibilitychange", handleVisibilityChange, true);
+                window.removeEventListener("pagehide", handlePageHide, true);
+                window.removeEventListener("blur", handleBlur, true);
+                if (fallbackTimer) {
+                    window.clearTimeout(fallbackTimer);
+                    fallbackTimer = null;
+                }
+            };
+
+            const handleVisibilityChange = () => {
+                if (document.visibilityState === "hidden") {
+                    didLeavePage = true;
+                    cleanup();
+                }
+            };
+
+            const handlePageHide = () => {
+                didLeavePage = true;
+                cleanup();
+            };
+
+            const handleBlur = () => {
+                didLeavePage = true;
+                cleanup();
+            };
+
+            document.addEventListener("visibilitychange", handleVisibilityChange, true);
+            window.addEventListener("pagehide", handlePageHide, true);
+            window.addEventListener("blur", handleBlur, true);
+
+            fallbackTimer = window.setTimeout(() => {
+                cleanup();
+                if (!didLeavePage) {
+                    window.open(urls.webUrl, "_blank", "noopener,noreferrer");
+                }
+            }, 1200);
 
             window.location.href = urls.appUrl;
-            window.setTimeout(() => window.clearTimeout(fallback), 1200);
             return;
         }
 
