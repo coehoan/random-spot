@@ -1,0 +1,22 @@
+{
+  "name": "RandomSpot",
+  "short_name": "RandomSpot",
+  "description": "랜덤으로 여행지, 교통수단, 지하철역, 식당, 챌린지를 정해주는 작은 도구 모음",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f6fa",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "/static/img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/static/img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
