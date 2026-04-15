@@ -2,10 +2,15 @@ const { loadLocalEnv } = require("./_env");
 
 loadLocalEnv();
 
-const SEARCH_ENDPOINT = "https://dapi.kakao.com/v2/local/search/category.json";
+const CATEGORY_SEARCH_ENDPOINT = "https://dapi.kakao.com/v2/local/search/category.json";
+const KEYWORD_SEARCH_ENDPOINT = "https://dapi.kakao.com/v2/local/search/keyword.json";
 const RESTAURANT_CATEGORY_CODE = "FD6";
 const PAGE_SIZE = 15;
 const MAX_PAGEABLE_COUNT = 45;
+const SEARCH_KEYWORDS = ["식당", "맛집", "한식", "중식", "일식", "양식", "분식"];
+const EXCLUDED_CATEGORY_NAMES = new Set([
+    "음식점 > 간식 > 제과,베이커리"
+]);
 
 function json(statusCode, payload) {
     return {
@@ -36,7 +41,7 @@ function normalizeText(value) {
 }
 
 async function searchRestaurantsPage({ latitude, longitude, radiusMeters, page, restApiKey }) {
-    const url = new URL(SEARCH_ENDPOINT);
+    const url = new URL(CATEGORY_SEARCH_ENDPOINT);
     url.searchParams.set("category_group_code", RESTAURANT_CATEGORY_CODE);
     url.searchParams.set("x", String(longitude));
     url.searchParams.set("y", String(latitude));
@@ -65,6 +70,73 @@ async function searchRestaurantsPage({ latitude, longitude, radiusMeters, page, 
     };
 }
 
+async function searchKeywordPage({ latitude, longitude, radiusMeters, keyword, page, restApiKey }) {
+    const url = new URL(KEYWORD_SEARCH_ENDPOINT);
+    url.searchParams.set("query", keyword);
+    url.searchParams.set("category_group_code", RESTAURANT_CATEGORY_CODE);
+    url.searchParams.set("x", String(longitude));
+    url.searchParams.set("y", String(latitude));
+    url.searchParams.set("radius", String(radiusMeters));
+    url.searchParams.set("sort", "accuracy");
+    url.searchParams.set("page", String(page));
+    url.searchParams.set("size", String(PAGE_SIZE));
+
+    const response = await fetch(url, {
+        headers: {
+            Authorization: `KakaoAK ${restApiKey}`
+        }
+    });
+
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        throw new Error(payload?.msg || `KAKAO_LOCAL_KEYWORD_SEARCH_FAILED_${response.status}`);
+    }
+
+    const documents = Array.isArray(payload.documents) ? payload.documents : [];
+    const meta = payload.meta || {};
+
+    return {
+        documents,
+        meta
+    };
+}
+
+async function collectDocuments(searchPage, params) {
+    const firstPage = await searchPage({
+        ...params,
+        page: 1
+    });
+    const pageableCount = Math.max(0, Number(firstPage.meta?.pageable_count || 0));
+    const maxDocuments = Math.min(MAX_PAGEABLE_COUNT, pageableCount);
+    const totalPages = maxDocuments > 0 ? Math.ceil(maxDocuments / PAGE_SIZE) : 0;
+
+    if (totalPages <= 1) {
+        return {
+            documents: firstPage.documents,
+            pageableCount
+        };
+    }
+
+    const pagePromises = [];
+    for (let page = 2; page <= totalPages; page += 1) {
+        pagePromises.push(
+            searchPage({
+                ...params,
+                page
+            }).catch(() => ({ documents: [], meta: {} }))
+        );
+    }
+
+    const nextPages = await Promise.all(pagePromises);
+    return {
+        documents: [
+            ...firstPage.documents,
+            ...nextPages.flatMap((result) => result.documents)
+        ],
+        pageableCount
+    };
+}
+
 function buildRestaurant(document) {
     const latitude = Number(document.y);
     const longitude = Number(document.x);
@@ -82,6 +154,10 @@ function buildRestaurant(document) {
         distanceMeters: Number.isFinite(distanceMeters) ? distanceMeters : 0,
         placeUrl: document.place_url || ""
     };
+}
+
+function shouldExcludeRestaurant(restaurant) {
+    return EXCLUDED_CATEGORY_NAMES.has(restaurant.category);
 }
 
 exports.handler = async function handler(event) {
@@ -128,36 +204,31 @@ exports.handler = async function handler(event) {
     }
 
     try {
-        const firstPage = await searchRestaurantsPage({
+        const categoryResult = await collectDocuments(searchRestaurantsPage, {
             latitude,
             longitude,
             radiusMeters,
-            page: 1,
             restApiKey
         });
 
-        const pageableCount = Math.max(0, Number(firstPage.meta?.pageable_count || 0));
-        const maxDocuments = Math.min(MAX_PAGEABLE_COUNT, pageableCount);
-        const totalPages = Math.max(1, Math.ceil(maxDocuments / PAGE_SIZE));
-        const pagePromises = [];
-
-        for (let page = 2; page <= totalPages; page += 1) {
-            pagePromises.push(
-                searchRestaurantsPage({
-                    latitude,
-                    longitude,
-                    radiusMeters,
-                    page,
-                    restApiKey
-                }).catch(() => ({ documents: [], meta: {} }))
-            );
+        const keywordResults = [];
+        for (const keyword of SEARCH_KEYWORDS) {
+            keywordResults.push(await collectDocuments(searchKeywordPage, {
+                latitude,
+                longitude,
+                radiusMeters,
+                keyword,
+                restApiKey
+            }));
         }
-
-        const nextPages = pagePromises.length > 0 ? await Promise.all(pagePromises) : [];
         const allDocuments = [
-            ...firstPage.documents,
-            ...nextPages.flatMap(page => page.documents)
+            ...categoryResult.documents,
+            ...keywordResults.flatMap((result) => result.documents)
         ];
+        const pageableCount = categoryResult.pageableCount + keywordResults.reduce(
+            (sum, result) => sum + result.pageableCount,
+            0
+        );
 
         const deduped = new Map();
         allDocuments.forEach(document => {
@@ -167,6 +238,10 @@ exports.handler = async function handler(event) {
             }
 
             if (restaurant.distanceMeters > radiusMeters) {
+                return;
+            }
+
+            if (shouldExcludeRestaurant(restaurant)) {
                 return;
             }
 
