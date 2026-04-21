@@ -88,7 +88,7 @@ body::before {
   background: var(--paper);
   border: var(--border);
   font-family: var(--font-pixel-en);
-  font-size: 8px;
+  font-size: 10px;
   text-decoration: none; color: var(--ink-1);
   letter-spacing: .06em;
   cursor: pointer;
@@ -313,7 +313,7 @@ body::before {
 
 .helper {
   font-family: var(--font-pixel-en);
-  font-size: 8px;
+  font-size: 10px;
   color: var(--ink-3);
   padding-left: 2px;
   letter-spacing: .02em;
@@ -417,7 +417,7 @@ body::before {
 .bubble small {
   display: block;
   font-family: var(--font-pixel-en);
-  font-size: 8px;
+  font-size: 10px;
   color: var(--ink-1);
   margin-top: 8px;
   letter-spacing: .02em;
