@@ -1,96 +1,585 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta property="og:image" content="https://randomspot.netlify.app/static/img/og-main.png" />
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>랜덤 사이트</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>RANDOM / SPOT — 오늘 뭐하지?</title>
 
-    <link rel="icon" href="/static/img/favicon.ico">
-    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <meta name="theme-color" content="#111827">
-    <meta name="apple-mobile-web-app-title" content="RandomSpot">
-    <link rel="stylesheet" href="static/css/style.css">
+  <meta property="og:image" content="https://randomspot.netlify.app/static/img/og-main.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <link rel="icon" href="/static/img/favicon.ico" />
+  <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#f0eee7" />
+  <meta name="apple-mobile-web-app-title" content="RandomSpot" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+
+  <style>
+    :root {
+      --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-display: "Space Grotesk", "Pretendard Variable", sans-serif;
+      --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+      --bg: #f0eee7;
+      --ink-1: #000000;
+      --ink-2: #1a1a1a;
+      --ink-3: #4a4a4a;
+      --ink-4: #767676;
+      --yellow: #fde047;
+      --pink: #fb7185;
+      --blue: #38bdf8;
+      --green: #4ade80;
+      --orange: #fb923c;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+    html, body { width: 100%; overflow-x: hidden; }
+    body {
+      background: var(--bg);
+      color: var(--ink-1);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.5;
+      min-height: 100vh;
+      background-image:
+        linear-gradient(rgba(0,0,0,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,.05) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; padding: 0; text-align: left; }
+    a { color: inherit; text-decoration: none; }
+
+    /* Shell */
+    .shell {
+      max-width: 1200px; margin: 0 auto;
+      padding: 0 32px 48px;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+
+    /* Topbar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 0 18px;
+      border-bottom: 3px solid var(--ink-1);
+      margin-bottom: 36px;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 14px;
+      font-family: var(--font-mono);
+      font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+    }
+    .brand-mark {
+      width: 42px; height: 42px;
+      background: var(--yellow);
+      color: var(--ink-1);
+      display: grid; place-items: center;
+      border: 3px solid var(--ink-1);
+      box-shadow: 4px 4px 0 var(--ink-1);
+      font-family: var(--font-display); font-weight: 800;
+      font-size: 18px;
+    }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+    .meta-index {
+      font-family: var(--font-mono);
+      font-size: 11px; color: var(--ink-3);
+      letter-spacing: .06em; text-transform: uppercase;
+    }
+    .chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      background: var(--bg);
+      border: 2.5px solid var(--ink-1);
+      box-shadow: 3px 3px 0 var(--ink-1);
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .05em;
+    }
+    .chip .dot {
+      width: 7px; height: 7px;
+      background: var(--green);
+      border: 1.5px solid var(--ink-1);
+      animation: blink 1.4s infinite;
+    }
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: .3; }
+    }
+
+    /* Hero */
+    .hero {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 40px;
+      align-items: end;
+      padding: 12px 0 32px;
+      border-bottom: 3px solid var(--ink-1);
+      margin-bottom: 32px;
+    }
+    .hero-left .tag {
+      display: inline-block;
+      padding: 5px 12px;
+      background: var(--ink-1);
+      color: var(--yellow);
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em;
+      margin-bottom: 20px;
+      white-space: nowrap;
+    }
+    .h1 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: clamp(40px, 6.5vw, 80px);
+      line-height: .96;
+      letter-spacing: -0.04em;
+      margin-bottom: 22px;
+      text-transform: uppercase;
+      word-break: keep-all;
+    }
+    .h1 .line-2 {
+      display: inline-block;
+      background: var(--yellow);
+      padding: 2px 18px 6px;
+      border: 4px solid var(--ink-1);
+      transform: rotate(-2deg);
+      margin-top: 8px;
+      box-shadow: 5px 5px 0 var(--ink-1);
+    }
+
+    /* Hero right — stat block */
+    .hero-right {
+      display: flex; flex-direction: column; gap: 14px;
+      padding-bottom: 8px;
+    }
+    .stat-card {
+      padding: 16px 18px;
+      background: var(--bg);
+      border: 3px solid var(--ink-1);
+      box-shadow: 4px 4px 0 var(--ink-1);
+      display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    }
+    .stat-card.dark {
+      background: var(--ink-1);
+      color: var(--bg);
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--ink-3);
+    }
+    .stat-card.dark .stat-label { color: var(--yellow); }
+    .stat-value {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 22px; line-height: 1;
+      margin-top: 4px;
+    }
+    .stat-arrow {
+      width: 40px; height: 40px;
+      border: 2.5px solid currentColor;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .stat-arrow svg { width: 18px; height: 18px; }
+
+    /* Section head */
+    .section-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--ink-1);
+      flex-wrap: wrap;
+    }
+    .section-head h2 {
+      font-family: var(--font-display); font-weight: 700;
+      font-size: 20px; text-transform: uppercase; letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+    .section-head .no {
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em;
+      white-space: nowrap;
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .card {
+      position: relative;
+      padding: 22px 20px 20px;
+      background: var(--bg);
+      border: 3px solid var(--ink-1);
+      box-shadow: 5px 5px 0 var(--ink-1);
+      min-height: 210px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      opacity: 0; transform: translate(8px, 8px);
+      animation: brIn .35s cubic-bezier(.3,.8,.5,1) forwards;
+      font-family: var(--font-sans);
+      transition: transform .1s, box-shadow .1s;
+    }
+    .card:nth-child(1) { animation-delay: .08s; }
+    .card:nth-child(2) { animation-delay: .14s; }
+    .card:nth-child(3) { animation-delay: .2s; }
+    .card:nth-child(4) { animation-delay: .26s; }
+    .card:nth-child(5) {
+      animation-delay: .32s;
+      grid-column: 1 / -1;
+      min-height: 140px;
+      flex-direction: row; align-items: center; gap: 24px;
+      padding: 20px 28px;
+    }
+    @keyframes brIn { to { opacity: 1; transform: translate(0,0); } }
+    .card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0 var(--ink-1);
+    }
+    .card:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0 var(--ink-1);
+    }
+    .card[data-key="region"]     { --ca: var(--blue); }
+    .card[data-key="vehicle"]    { --ca: var(--green); }
+    .card[data-key="subway"]     { --ca: var(--pink); }
+    .card[data-key="restaurant"] { --ca: var(--orange); }
+    .card[data-key="challenge"]  { --ca: var(--yellow); }
+
+    .card-no {
+      position: absolute; top: 12px; right: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 700;
+      padding: 3px 7px;
+      border: 2px solid var(--ink-1);
+      background: var(--bg);
+    }
+    .card-icon {
+      width: 56px; height: 56px;
+      background: var(--ca);
+      border: 3px solid var(--ink-1);
+      color: var(--ink-1);
+      display: grid; place-items: center;
+      margin-bottom: 14px;
+    }
+    .card:nth-child(5) .card-icon { margin-bottom: 0; flex-shrink: 0; width: 64px; height: 64px; }
+    .card-icon svg { width: 28px; height: 28px; }
+    .card-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+    .card:nth-child(5) .card-title { font-size: 22px; margin-bottom: 6px; }
+    .card-desc {
+      font-size: 13px;
+      color: var(--ink-3);
+      line-height: 1.45;
+    }
+    .card:nth-child(5) .card-body { flex: 1; }
+    .card:nth-child(5) .card-desc { font-size: 14px; }
+
+    .card-cta {
+      position: absolute; right: 16px; bottom: 14px;
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 700;
+      color: var(--ink-3);
+      text-transform: uppercase; letter-spacing: .08em;
+      display: flex; align-items: center; gap: 6px;
+      transition: color .15s, gap .15s;
+    }
+    .card:hover .card-cta { color: var(--ink-1); gap: 10px; }
+    .card-cta svg { width: 12px; height: 12px; }
+    .card:nth-child(5) .card-cta {
+      position: static;
+      flex-shrink: 0;
+      padding: 10px 14px;
+      border: 2.5px solid var(--ink-1);
+      background: var(--ca);
+      color: var(--ink-1);
+      font-size: 11px;
+      align-self: center;
+    }
+
+    /* Info row */
+    .info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .info-card {
+      padding: 22px;
+      background: var(--bg);
+      border: 3px solid var(--ink-1);
+      box-shadow: 4px 4px 0 var(--ink-1);
+      font-family: var(--font-sans);
+    }
+    .info-card .label {
+      display: inline-block;
+      padding: 3px 10px;
+      background: var(--ink-1);
+      color: var(--yellow);
+      font-family: var(--font-mono);
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 12px;
+    }
+    .info-card h3 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 17px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .info-card p {
+      font-size: 13.5px;
+      color: var(--ink-2);
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: auto;
+      padding: 20px 0 0;
+      border-top: 3px solid var(--ink-1);
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    footer .links a { margin-right: 18px; }
+    footer .links a:hover { color: var(--ink-1); }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      left: 50%; bottom: 32px;
+      transform: translate(-50%, 150%);
+      padding: 16px 20px;
+      background: var(--yellow);
+      color: var(--ink-1);
+      border: 3px solid var(--ink-1);
+      box-shadow: 6px 6px 0 var(--ink-1);
+      font-family: var(--font-sans);
+      font-weight: 600;
+      transition: transform .3s cubic-bezier(.3,1.2,.5,1);
+      z-index: 100;
+      display: flex; align-items: center; gap: 14px;
+      min-width: 300px;
+    }
+    .toast.show { transform: translate(-50%, 0); }
+    .toast .icon {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      background: var(--ink-1);
+      color: var(--yellow);
+      display: grid; place-items: center;
+      font-family: var(--font-display); font-weight: 800;
+      font-size: 16px;
+    }
+    .toast-main { font-family: var(--font-display); text-transform: uppercase; font-size: 14px; line-height: 1.2; }
+    .toast-sub { font-family: var(--font-mono); font-size: 11px; margin-top: 2px; opacity: .75; }
+
+    /* Responsive */
+    @media (max-width: 980px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .hero { grid-template-columns: 1fr; gap: 24px; }
+      .info { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .shell { padding: 0 16px 32px; }
+      .grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .card { min-height: 160px; padding: 14px; }
+      .card:nth-child(5) { flex-direction: column; align-items: flex-start; }
+      .card:nth-child(5) .card-cta { align-self: flex-start; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="page">
-    <section class="card">
-        <h1 class="title">오늘 뭐하지? 랜덤으로 뽑기!</h1>
-        <p class="subtitle">아래에서 원하는 랜덤 기능을 선택하세요.</p>
+<!-- Icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-region" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 21s-7-7.2-7-12a7 7 0 0 1 14 0c0 4.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>
+    </symbol>
+    <symbol id="i-vehicle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="3" width="14" height="15" rx="3"/><path d="M5 10h14"/><circle cx="8.5" cy="14.5" r="1"/><circle cx="15.5" cy="14.5" r="1"/><path d="M8 18v2M16 18v2"/>
+    </symbol>
+    <symbol id="i-subway" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 11h16"/><path d="M4 7l2-2h12l2 2"/><rect x="4" y="5" width="16" height="14" rx="4"/><circle cx="8.5" cy="15" r="1"/><circle cx="15.5" cy="15" r="1"/>
+    </symbol>
+    <symbol id="i-restaurant" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 3v8a3 3 0 0 0 6 0V3"/><path d="M10 3v18"/><path d="M17 3c-1.5 1.5-2 3.5-2 5.5 0 2 1 3.5 2 3.5v9"/>
+    </symbol>
+    <symbol id="i-challenge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2l2.9 5.9L21 9l-4.5 4.3L17.8 20 12 16.9 6.2 20l1.3-6.7L3 9l6.1-1.1z"/>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14M13 6l6 6-6 6"/>
+    </symbol>
+    <symbol id="i-dice" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.2"/><circle cx="16" cy="8" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="8" cy="16" r="1.2"/><circle cx="16" cy="16" r="1.2"/>
+    </symbol>
+  </defs>
+</svg>
 
-        <section class="content-box">
-            <h2>이 사이트는 무엇을 해주나요?</h2>
-            <p>
-                “랜덤”으로 교통수단/여행지역/챌린지를 뽑아주는 작은 도구예요.
-                고민 시간을 줄이고, 가볍게 밖에 나갈 핑계를 만들도록 설계했습니다.
-            </p>
-            <ul>
-                <li><b>랜덤 여행지역</b>: 시·도/시군구/읍면동(옵션)을 랜덤으로 뽑아요.</li>
-                <li><b>랜덤 교통수단</b>: 버스/지하철/방향/환승까지 랜덤으로 정해요.</li>
-                <li><b>랜덤 지하철역</b>: 전체 노선의 권역을 고르고, 선택한 권역 안에서 지하철역 하나를 랜덤으로 뽑아요.</li>
-                <li><b>내 주변 랜덤 식당</b>: 현재 위치 반경 안에서 식당 한 곳을 랜덤으로 골라요.</li>
-                <li><b>랜덤 챌린지</b>: 오늘 할 미션을 랜덤으로 정해서 바로 실행해요.</li>
-            </ul>
-            <p class="muted">
-                팁: 결과 화면에서 “공유 링크”를 복사하면, 지금 뽑힌 결과를 친구에게 그대로 전달할 수 있어요.
-            </p>
-        </section>
+<div class="shell">
+  <header class="topbar">
+    <a class="brand" href="#">
+      <span class="brand-mark">R</span>
+      <span>RANDOM / SPOT</span>
+    </a>
+    <div class="topbar-right">
+      <span class="meta-index">ISSUE · 2025 · NO.01</span>
+      <span class="chip"><span class="dot"></span>LIVE</span>
+    </div>
+  </header>
 
-        <div class="home-actions">
-            <button id="regionBtn" class="secondary-btn" style="font-size: 15px;">
-                📍 랜덤 여행지역
-            </button>
-
-            <button id="vehicleBtn" class="secondary-btn" style="font-size: 15px;">
-                🚌 랜덤 교통수단
-            </button>
-
-            <button id="subwayBtn" class="secondary-btn" style="font-size: 15px;">
-                🚇 랜덤 지하철역
-            </button>
-
-            <button id="restaurantBtn" class="secondary-btn" style="font-size: 15px;">
-                🍽️ 내 주변 랜덤 식당
-            </button>
-
-            <button id="challengeBtn" class="secondary-btn" style="font-size: 15px;">
-                🎉 랜덤 챌린지
-            </button>
+  <section class="hero">
+    <div class="hero-left">
+      <span class="tag">■ Daily Random Engine</span>
+      <h1 class="h1">
+        <span class="line-1">오늘 뭐하지?</span><br/>
+        <span class="line-2">랜덤으로!</span>
+      </h1>
+    </div>
+    <div class="hero-right">
+      <div class="stat-card">
+        <div>
+          <div class="stat-label">Categories</div>
+          <div class="stat-value">05 / 05</div>
         </div>
-    </section>
+        <div class="stat-arrow"><svg><use href="#i-dice"/></svg></div>
+      </div>
+      <div class="stat-card dark">
+        <div>
+          <div class="stat-label">Decisions today</div>
+          <div class="stat-value" id="counter">1,248</div>
+        </div>
+        <div class="stat-arrow"><svg><use href="#i-arrow"/></svg></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-head">
+    <h2>카테고리 선택</h2>
+    <span class="no">// 01 — PICK ONE</span>
+  </div>
+
+  <section class="grid" role="list" aria-label="랜덤 카테고리"></section>
+
+  <div class="section-head">
+    <h2>이 사이트는?</h2>
+    <span class="no">// 02 — ABOUT</span>
+  </div>
+
+  <section class="info">
+    <div class="info-card">
+      <span class="label">[ WHAT ]</span>
+      <h3>무엇을 하나요</h3>
+      <p>교통수단·여행지·챌린지 같은 작은 결정을 대신 내려드립니다. 고민은 줄이고, 실행은 늘린다.</p>
+    </div>
+    <div class="info-card">
+      <span class="label">[ HOW ]</span>
+      <h3>어떻게 쓰나요</h3>
+      <p>카테고리 카드를 누르면 곧바로 랜덤 결과가 나옵니다. 마음에 안 들면 다시 돌리면 돼요.</p>
+    </div>
+    <div class="info-card">
+      <span class="label">[ SHARE ]</span>
+      <h3>친구랑 같이</h3>
+      <p>결과 화면의 공유 링크를 복사 → 친구에게 전달. 같은 장소, 같은 미션, 같은 하루.</p>
+    </div>
+  </section>
+
+  <footer>
+    <div class="links">
+      <a href="static/html/about.html">소개</a>
+      <a href="static/html/contact.html">문의</a>
+      <a href="static/html/terms.html">이용약관</a>
+      <a href="static/html/privacy.html">개인정보</a>
+    </div>
+    <div>© 2025 · RANDOM/SPOT · v1.0</div>
+  </footer>
 </div>
 
-<div class="footer-links">
-    <a href="static/html/about.html" style="color:#aaa; text-decoration:none;">소개</a>
-    <a href="static/html/contact.html" style="color:#aaa; text-decoration:none;">문의</a>
-    <a href="static/html/terms.html" style="color:#aaa; text-decoration:none;">이용약관</a>
-    <a href="static/html/privacy.html" style="color:#aaa; text-decoration:none;">개인정보처리방침</a>
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="icon">✓</span>
+  <div>
+    <div class="toast-main" id="toastMain">SELECTED</div>
+    <div class="toast-sub" id="toastSub">opening…</div>
+  </div>
 </div>
 
 <script>
-    document.getElementById("regionBtn").addEventListener("click", () => {
-        window.location.href = "pages/region.html";
-    });
+  const OPTIONS = [
+    { key: 'region',     title: '랜덤 여행지역',   desc: '시·도·구 단위로 랜덤 선택',       href: 'pages/region.html' },
+    { key: 'vehicle',    title: '랜덤 교통수단',   desc: '버스·지하철·환승 한 번에',         href: 'pages/vehicle.html' },
+    { key: 'subway',     title: '랜덤 지하철역',   desc: '권역 내 한 역을 즉석 픽',         href: 'pages/subway.html' },
+    { key: 'restaurant', title: '내 주변 식당',    desc: '내 위치 반경에서 한 곳',           href: 'pages/restaurant.html' },
+    { key: 'challenge',  title: '랜덤 챌린지',     desc: '오늘의 미션을 즉석 추첨해 드려요. 가볍게 도전해 보세요.', href: 'pages/challenge.html' },
+  ];
 
-    document.getElementById("vehicleBtn").addEventListener("click", () => {
-        window.location.href = "pages/vehicle.html";
-    });
+  const grid = document.querySelector('.grid');
+  OPTIONS.forEach((opt, i) => {
+    const no = String(i + 1).padStart(2, '0');
+    grid.insertAdjacentHTML('beforeend', `
+      <button class="card" data-key="${opt.key}" role="listitem">
+        <span class="card-no">N°${no}</span>
+        <div class="card-icon"><svg><use href="#i-${opt.key}"/></svg></div>
+        <div class="card-body">
+          <div class="card-title">${opt.title}</div>
+          <div class="card-desc">${opt.desc}</div>
+        </div>
+        <span class="card-cta">GO <svg><use href="#i-arrow"/></svg></span>
+      </button>
+    `);
+  });
 
-    document.getElementById("subwayBtn").addEventListener("click", () => {
-        window.location.href = "pages/subway.html";
-    });
+  // Live counter
+  (() => {
+    const el = document.getElementById('counter');
+    let n = 1248;
+    setInterval(() => {
+      n += Math.floor(Math.random() * 3);
+      el.textContent = n.toLocaleString();
+    }, 2400);
+  })();
 
-    document.getElementById("restaurantBtn").addEventListener("click", () => {
-        window.location.href = "pages/restaurant.html";
-    });
+  // Toast
+  const toast = document.getElementById('toast');
+  function showToast(main, sub) {
+    document.getElementById('toastMain').textContent = main;
+    document.getElementById('toastSub').textContent = sub || '';
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2000);
+  }
 
-    document.getElementById("challengeBtn").addEventListener("click", () => {
-        window.location.href = "pages/challenge.html";
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => {
+      const k = card.dataset.key;
+      const opt = OPTIONS.find(o => o.key === k);
+      showToast(opt.title, '이동 중...');
+      setTimeout(() => { window.location.href = opt.href; }, 350);
     });
+  });
 </script>
 
 </body>

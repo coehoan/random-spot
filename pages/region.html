@@ -1,128 +1,118 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta property="og:image" content="https://randomspot.netlify.app/static/img/og-main.png" />
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>랜덤 지역 뽑기</title>
-    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <link rel="icon" href="/static/img/favicon.ico">
-    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <meta name="theme-color" content="#111827">
-    <meta name="apple-mobile-web-app-title" content="RandomSpot">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537"
-            crossorigin="anonymous"></script>
-    <script src="/static/js/naver-map-loader.js"></script>
+  <meta charset="UTF-8" />
+  <meta property="og:image" content="https://randomspot.netlify.app/static/img/og-main.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>랜덤 여행지역 — RANDOM / SPOT</title>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <link rel="icon" href="/static/img/favicon.ico" />
+  <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#f0eee7" />
+  <meta name="apple-mobile-web-app-title" content="RandomSpot" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9815986502338537" crossorigin="anonymous"></script>
+  <script src="/static/js/naver-map-loader.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="_shared.css" />
 </head>
 <body>
 
-<div class="page tool-page">
-    <div id="toast" class="toast"></div>
-    <section class="card">
-        <div style="display:flex; justify-content:flex-start; margin-bottom: 12px;">
-            <button id="goMainBtn" class="secondary-btn go-main-btn">
-                🏠 메인으로
-            </button>
-        </div>
+<div id="toast" class="toast"></div>
 
-        <h1 class="title">랜덤 지역 뽑기</h1>
-        <p class="subtitle">전국 행정구역 중 시·군·구·읍·면·리까지 랜덤으로 정해보세요.</p>
+<div class="shell">
+  <header class="topbar">
+    <a class="brand" href="../index.html">
+      <span class="brand-mark">R</span>
+      <span class="brand-name">RANDOM / SPOT</span>
+    </a>
+    <a id="goMainBtn" class="go-main" href="../index.html">
+      <span>←</span> 메인으로
+    </a>
+  </header>
 
-        <section class="content-box">
-            <h2>사용 방법</h2>
-            <p>
-                원하는 범위를 선택한 뒤 “시작하기”를 누르면 여행/나들이 지역을 랜덤으로 뽑습니다.
-                범위를 좁힐수록 더 취향에 맞는 결과를 고르기 쉬워집니다.
-            </p>
-            <ul>
-                <li>광역시·도 → 시군구 → (옵션) 읍면동 순으로 범위를 차례대로 좁혀보세요.</li>
-                <li>결과가 나오면 이미지 저장이나 공유 링크로 같은 결과를 바로 전달할 수 있어요.</li>
-            </ul>
+  <section class="hero">
+    <div class="hero-meta">
+      <span class="no">N° 01</span>
+      <span class="cat">// REGION</span>
+    </div>
+    <h1>랜덤 <span class="mark">여행지역</span></h1>
+    <p>전국 행정구역 중 시·군·구·읍·면·리까지 랜덤으로 정해보세요.</p>
+  </section>
 
-            <!--<h2>FAQ</h2>
-            <ul>
-                <li><b>Q.</b> 읍면동 제외는 뭔가요? <b><br>A.</b> 너무 세부 지역이 나오는 걸 줄이기 위한 옵션입니다.</li>
-                <li><b>Q.</b> 결과가 마음에 안 들면요? <b><br>A.</b> 필터를 조정하거나 다시 뽑아보세요.</li>
-            </ul>-->
+  <section class="howto">
+    <h2>사용 방법</h2>
+    <p>원하는 범위를 선택한 뒤 "시작하기"를 누르면 여행/나들이 지역을 랜덤으로 뽑습니다. 범위를 좁힐수록 더 취향에 맞는 결과를 고르기 쉬워집니다.</p>
+    <ul>
+      <li>광역시·도 → 시군구 → (옵션) 읍면동 순으로 범위를 차례대로 좁혀보세요.</li>
+      <li>결과가 나오면 이미지 저장이나 공유 링크로 같은 결과를 바로 전달할 수 있어요.</li>
+    </ul>
+    <p class="muted">※ 지역명과 행정구역 데이터는 업데이트 시점에 따라 실제와 일부 다를 수 있습니다.</p>
+  </section>
 
-            <p class="muted">
-                안내: 지역명과 행정구역 데이터는 업데이트 시점에 따라 실제와 일부 다를 수 있습니다.
-            </p>
-        </section>
+  <div class="filters">
+    <label class="filter-row">
+      <input type="checkbox" id="excludeEupMyeonDong" />
+      <div class="filter-row-text">
+        <div class="filter-row-title">읍 · 면 · 동 제외</div>
+        <div class="filter-row-desc">시·군·구까지만 표시합니다</div>
+      </div>
+    </label>
 
-        <div class="filters">
-            <!-- ✅ 1) 읍면동 제외: 필터 박스 톤에 맞춘 한 줄 -->
-            <label class="filter-row">
-                <input type="checkbox" id="excludeEupMyeonDong">
-                <div class="filter-row-text">
-                    <div class="filter-row-title">읍·면·동 제외</div>
-                    <div class="filter-row-desc">시·군·구까지만 표시</div>
-                </div>
-            </label>
+    <button id="toggleSidoBtn" class="accordion-btn" type="button" aria-expanded="false">
+      <span class="accordion-left">
+        <span>📍</span>
+        <span class="accordion-title">광역시 · 도 선택</span>
+      </span>
+      <span class="accordion-right">
+        <span id="selectedCount" class="badge">전체</span>
+        <span id="toggleArrow" class="arrow">▾</span>
+      </span>
+    </button>
 
-            <!-- ✅ 2) 광역시/도 선택: '셀렉트' 느낌 제거한 아코디언 버튼 -->
-            <button id="toggleSidoBtn" class="accordion-btn" type="button" aria-expanded="false">
-        <span class="accordion-left">
-            <span class="pin">📍</span>
-            <span class="accordion-title">광역시 · 도 선택</span>
-        </span>
-                <span class="accordion-right">
-            <span id="selectedCount" class="badge">전체</span>
-            <span id="toggleArrow" class="arrow">▾</span>
-        </span>
-            </button>
+    <div id="sidoPanel" class="accordion-panel" style="display:none;">
+      <div class="chips" id="sidoChips"></div>
+      <div class="mini-actions" id="sidoActions" style="display:none;">
+        <button id="selectAllBtn" class="secondary-btn" type="button"><span class="icon">✓</span> 전체 선택</button>
+        <button id="clearAllBtn" class="secondary-btn" type="button"><span class="icon">×</span> 전체 해제</button>
+      </div>
+    </div>
 
-            <!-- ✅ 3) 펼쳤을 때만 나오는 영역 -->
-            <div id="sidoPanel" class="accordion-panel" style="display:none;">
-                <div class="chips" id="sidoChips"></div>
+    <div class="helper">※ 광역시/도를 1개 이상 선택해야 랜덤 추첨이 실행됩니다.</div>
+  </div>
 
-                <!-- ✅ 전체 선택/해제: 펼쳤을 때만 보이도록 여기로 이동 -->
-                <div class="mini-actions" id="sidoActions" style="display:none;">
-                    <button id="selectAllBtn" class="secondary-btn" type="button"><span class="icon">✅</span>전체 선택</button>
-                    <button id="clearAllBtn" class="secondary-btn" type="button"><span class="icon">🧹</span>전체 해제</button>
-                </div>
-            </div>
+  <button id="startBtn" class="btn-primary">시작하기 →</button>
 
-            <div class="helper">
-                ※ 광역시/도를 1개 이상 선택해야 랜덤 추첨이 실행됩니다.
-            </div>
-        </div>
+  <div id="bubbleWrap" class="bubble-wrap dis-none">
+    <div id="bubble" class="bubble"></div>
+  </div>
 
-        <button id="startBtn">시작하기</button>
+  <div class="actions" id="actions">
+    <button id="saveImgBtn" class="secondary-btn"><span class="icon">🖼️</span> 이미지로 저장</button>
+    <button id="shareBtn" class="secondary-btn"><span class="icon">🔗</span> 결과 공유하기</button>
+  </div>
 
-        <div id="bubbleWrap" class="bubble-wrap dis-none">
-            <div id="bubble" class="bubble"></div>
-        </div>
+  <section id="mapPanel" class="sample-map-panel dis-none">
+    <h2>네이버 지도</h2>
+    <p id="mapStatus" class="sample-map-status">결과가 나오면 해당 위치를 지도에 표시합니다.</p>
+    <div id="resultMap" class="sample-map-canvas"></div>
+  </section>
 
-        <div class="actions" id="actions">
-            <button id="saveImgBtn" class="secondary-btn">
-                <span class="icon">🖼️</span>
-                결과 이미지로 저장
-            </button>
-            <button id="shareBtn" class="secondary-btn">
-                <span class="icon">🔗</span>
-                결과 공유하기
-            </button>
-        </div>
-
-        <section id="mapPanel" class="sample-map-panel dis-none">
-            <h2>네이버 지도</h2>
-            <p id="mapStatus" class="sample-map-status">결과가 나오면 해당 위치를 지도에 표시합니다.</p>
-            <div id="resultMap" class="sample-map-canvas"></div>
-        </section>
-    </section>
-</div>
-
-<div class="footer-links">
-    <a href="../static/html/about.html" style="color:#aaa; text-decoration:none;">소개</a>
-    <a href="../static/html/contact.html" style="color:#aaa; text-decoration:none;">문의</a>
-    <a href="../static/html/terms.html" style="color:#aaa; text-decoration:none;">이용약관</a>
-    <a href="../static/html/privacy.html" style="color:#aaa; text-decoration:none;">개인정보처리방침</a>
+  <footer class="page-footer">
+    <div class="links">
+      <a href="../static/html/about.html">소개</a>
+      <a href="../static/html/contact.html">문의</a>
+      <a href="../static/html/terms.html">이용약관</a>
+      <a href="../static/html/privacy.html">개인정보처리방침</a>
+    </div>
+    <div>© 2025 · RANDOM/SPOT · v1.0</div>
+  </footer>
 </div>
 
 <script>
@@ -152,9 +142,8 @@
     let regions = [];
     let stepTimer = null;
     let isCsvLoaded = false;
-    let isSidoOpen = false; // 처음엔 접힘
+    let isSidoOpen = false;
 
-    // ✅ 광역시/도 목록 (CSV 첫 토큰 기준 매칭)
     let mapInstance = null;
     let mapMarker = null;
     let mapInfoWindow = null;
@@ -165,14 +154,11 @@
         "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도", "경상남도", "제주특별자치도"
     ];
 
-    // ✅ 선택된 시도 집합
-    const selectedSido = new Set(SIDO_LIST); // 기본: 전체 선택
+    const selectedSido = new Set(SIDO_LIST);
 
-    // 처음에는 버튼 비활성화
     startBtn.disabled = true;
     startBtn.textContent = "데이터 불러오는 중...";
 
-    // ===== UI helpers =====
     function showToast(message) {
         toast.textContent = message;
         toast.classList.add("show");
@@ -435,21 +421,19 @@
     toggleSidoBtn.addEventListener("click", () => {
         isSidoOpen = !isSidoOpen;
 
-        // aria 상태 업데이트
         toggleSidoBtn.setAttribute("aria-expanded", String(isSidoOpen));
 
         if (isSidoOpen) {
             sidoPanel.style.display = "block";
-            sidoActions.style.display = "flex"; // ✅ 펼쳤을 때만 노출
+            sidoActions.style.display = "flex";
             toggleArrow.textContent = "▴";
         } else {
             sidoPanel.style.display = "none";
-            sidoActions.style.display = "none"; // ✅ 접히면 숨김
+            sidoActions.style.display = "none";
             toggleArrow.textContent = "▾";
         }
     });
 
-    // 전체 선택/해제 버튼은 그대로 쓰되, renderSidoChips()로 배지 자동 갱신됨
     selectAllBtn.addEventListener("click", () => {
         SIDO_LIST.forEach(s => selectedSido.add(s));
         renderSidoChips();
@@ -462,7 +446,6 @@
 
     renderSidoChips();
 
-    // ===== CSV =====
     async function loadCsv() {
         try {
             const response = await fetch("/static/files/regions.csv");
@@ -471,7 +454,7 @@
 
             isCsvLoaded = true;
             startBtn.disabled = false;
-            startBtn.textContent = hasStarted ? "다시하기" : "시작하기";
+            startBtn.textContent = hasStarted ? "다시 뽑기 ↻" : "시작하기 →";
 
         } catch (e) {
             console.error(e);
@@ -499,12 +482,7 @@
     }
 
     function getFilteredRegions() {
-        // 1) 시도 필터
-        let filtered = regions.filter(r => selectedSido.has(getSidoFromName(r.name)));
-
-        // 2) (옵션) 읍면동 제외는 "표시 레벨"에서 처리하므로 여기서는 굳이 제거하지 않음
-        //    다만 시군구가 없는 데이터(토큰 1개)면 그대로 허용
-        return filtered;
+        return regions.filter(r => selectedSido.has(getSidoFromName(r.name)));
     }
 
     function pickRandomRegionFrom(list) {
@@ -512,7 +490,6 @@
         return list[idx];
     }
 
-    // ===== Share URL =====
     function buildShareUrl(payload) {
         const json = JSON.stringify(payload);
         const z = LZString.compressToEncodedURIComponent(json);
@@ -534,7 +511,6 @@
         }
     }
 
-    // 선택이 전체가 아니거나, 0개면 사용자가 확인하기 쉽도록 자동 펼침 (원하면 조건 조절 가능)
     function openSidoPanel() {
         isSidoOpen = true;
         toggleSidoBtn.setAttribute("aria-expanded", "true");
@@ -546,12 +522,10 @@
     function applyFiltersFromPayload(payload) {
         if (!payload) return;
 
-        // 읍면동 제외 복원
         if (typeof payload.excludeEupMyeonDong === "boolean") {
             excludeEupMyeonDongEl.checked = payload.excludeEupMyeonDong;
         }
 
-        // 시도 선택 복원
         if (Array.isArray(payload.selectedSido)) {
             selectedSido.clear();
             payload.selectedSido.forEach(s => {
@@ -560,21 +534,16 @@
             renderSidoChips();
         }
 
-        // 선택된 시도가 일부 있을 경우 자동 펼침
         if (selectedSido.size !== SIDO_LIST.length) {
             openSidoPanel();
         }
     }
 
-    // ===== Display =====
     function normalizeNameForDisplay(fullName, excludeEupMyeonDong) {
         const parts = (fullName || "").trim().split(/\s+/).filter(Boolean);
 
         if (!excludeEupMyeonDong) return parts;
 
-        // ✅ 읍면동 제외: "광역/도 + 시군구"까지만 보여주기
-        // - 보통 [광역/도, 시/군/구, 읍/면/동, 리...]
-        // - 토큰이 2개 미만이면 그대로
         const maxDepth = Math.min(parts.length, 2);
         return parts.slice(0, maxDepth);
     }
@@ -611,7 +580,6 @@
         showRegionStepByStep(region, exclude);
         showRegionOnMap(region, exclude);
 
-        // 공유 payload에 필터 포함
         const payload = {
             code: region.code,
             name: region.name,
@@ -622,7 +590,6 @@
         shareBtn.dataset.url = buildShareUrl(payload);
     }
 
-    // ===== Events =====
     startBtn.addEventListener("click", () => {
         if (!isCsvLoaded) {
             showToast("데이터를 불러오는 중입니다. 잠시 후 다시 눌러주세요.");
@@ -635,7 +602,7 @@
         }
 
         if (!hasStarted) {
-            startBtn.textContent = "다시하기";
+            startBtn.textContent = "다시 뽑기 ↻";
             actions.style.display = "flex";
             bubbleWrap.classList.remove("dis-none");
             hasStarted = true;
@@ -691,14 +658,12 @@
         applyFiltersFromPayload(payload);
 
         actions.style.display = "flex";
-        startBtn.textContent = "다시하기";
+        startBtn.textContent = "다시 뽑기 ↻";
         bubbleWrap.classList.remove("dis-none");
         hasStarted = true;
 
-        // 공유 데이터로 즉시 표시 (CSV 없어도 가능)
         showRegionStepByStep({ code: payload.code, name: payload.name }, !!payload.excludeEupMyeonDong);
 
-        // 공유 버튼은 "현재 상태"로 다시 만들어주기
         const rebuilt = {
             code: payload.code,
             name: payload.name,
@@ -712,10 +677,10 @@
         window.history.replaceState({}, "", cleanUrl);
     });
 
-    document.getElementById("goMainBtn").addEventListener("click", () => {
+    document.getElementById("goMainBtn").addEventListener("click", (e) => {
+        e.preventDefault();
         window.location.href = "../index.html";
     });
 </script>
-
 </body>
 </html>
