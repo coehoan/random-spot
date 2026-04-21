@@ -1,84 +1,115 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>개인정보처리방침 | RandomSpot</title>
-    <link rel="icon" href="/static/img/favicon.ico">
-    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <meta name="theme-color" content="#111827">
-    <meta name="apple-mobile-web-app-title" content="RandomSpot">
-    <link rel="stylesheet" href="../css/docs.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>개인정보처리방침 — RANDOM / SPOT</title>
+  <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/static/img/favicon.ico" />
+  <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="theme-color" content="#f0eee7" />
+  <meta name="apple-mobile-web-app-title" content="RandomSpot" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+  <link rel="stylesheet" href="../../pages/_shared.css" />
+  <style>
+    .doc-section {
+      border: var(--border);
+      padding: 24px;
+      margin-bottom: 16px;
+      position: relative;
+      background: var(--paper);
+    }
+    .doc-section h2 {
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 15px;
+      margin: 0 0 12px;
+      letter-spacing: -0.01em;
+    }
+    .doc-section p, .doc-section li {
+      font-size: 13px;
+      color: var(--ink-2);
+      line-height: 1.9;
+    }
+    .doc-section ul { padding-left: 0; list-style: none; }
+    .doc-section ul li { position: relative; padding-left: 20px; margin-bottom: 6px; }
+    .doc-section ul li::before {
+      content: "▸";
+      position: absolute; left: 0;
+      font-family: var(--font-pixel-en);
+      font-size: 9px; line-height: 2.2;
+    }
+  </style>
 </head>
 <body>
+<div id="toast" class="toast"></div>
+<div class="shell">
+  <header class="topbar">
+    <a class="brand" href="../../index.html">
+      <span class="brand-mark">R</span>
+      <span class="brand-name">RANDOM / SPOT</span>
+    </a>
+    <a class="go-main" href="../../index.html"><span>←</span> 메인으로</a>
+  </header>
 
-<div class="page">
-    <section class="card">
-        <div class="go-main-wrap">
-            <a href="../../index.html" class="secondary-btn">🏠 메인으로</a>
-        </div>
+  <section class="hero">
+    <div class="hero-meta">
+      <span class="no">PRIVACY</span>
+      <span class="cat">// RANDOM / SPOT</span>
+    </div>
+    <h1><span class="mark">개인정보처리방침</span></h1>
+    <p>RandomSpot은 이용자의 개인정보를 직접 수집하지 않는 구조를 우선으로 운영합니다.</p>
+  </section>
 
-        <div class="hero">
-            <div class="eyebrow">Privacy</div>
-            <h1 class="title">개인정보처리방침</h1>
-            <p class="subtitle">
-                RandomSpot은 이용자의 개인정보를 직접 수집하지 않는 구조를 우선으로 운영합니다. 다만 로그, 쿠키, 광고 도구 도입 여부에 따라 자동 수집 정보가 발생할 수 있습니다.
-            </p>
-        </div>
+  <div class="doc-section">
+    <h2>1. 직접 수집하는 정보</h2>
+    <p>현재 버전의 RandomSpot은 회원가입, 댓글, 결제, 마이페이지 기능이 없으며 이름, 전화번호, 주소 같은 개인정보를 직접 입력받지 않습니다.</p>
+  </div>
 
-        <div class="section-stack">
-            <section class="section">
-                <h2>1. 직접 수집하는 정보</h2>
-                <p>현재 버전의 RandomSpot은 회원가입, 댓글, 결제, 마이페이지 기능이 없으며 이름, 전화번호, 주소 같은 개인정보를 직접 입력받지 않습니다.</p>
-            </section>
+  <div class="doc-section">
+    <h2>2. 자동 수집될 수 있는 정보</h2>
+    <ul>
+      <li>IP 주소</li>
+      <li>브라우저 및 기기 정보</li>
+      <li>접속 시간과 페이지 기록</li>
+      <li>쿠키 또는 비슷한 기술 정보</li>
+    </ul>
+  </div>
 
-            <section class="section">
-                <h2>2. 자동 수집될 수 있는 정보</h2>
-                <ul>
-                    <li>IP 주소</li>
-                    <li>브라우저 및 기기 정보</li>
-                    <li>접속 시간과 페이지 기록</li>
-                    <li>쿠키 또는 비슷한 기술 정보</li>
-                </ul>
-            </section>
+  <div class="doc-section">
+    <h2>3. 광고와 쿠키</h2>
+    <p>향후 Google AdSense 같은 광고 도구가 적용되면 쿠키 기반 광고나 방문 정보 처리가 함께 이뤄질 수 있습니다. 이 경우 관련 고지와 필요 시 동의 절차를 추가할 예정입니다.</p>
+  </div>
 
-            <section class="section">
-                <h2>3. 광고와 쿠키</h2>
-                <p>
-                    현재 비교용 시안은 광고보다 콘텐츠 구조 점검을 우선으로 만들었습니다.
-                    향후 Google AdSense 같은 광고 도구가 적용되면 쿠키 기반 광고나 방문 정보 처리가 함께 이뤄질 수 있습니다.
-                    이 경우 관련 고지와 필요 시 동의 절차를 추가할 예정입니다.
-                </p>
-            </section>
+  <div class="doc-section">
+    <h2>4. 이용자의 선택권</h2>
+    <p>이용자는 브라우저 설정을 통해 쿠키 저장을 제한하거나 삭제할 수 있습니다. 다만 이 경우 일부 기능 또는 광고 설정이 예상과 다르게 동작할 수 있습니다.</p>
+  </div>
 
-            <section class="section">
-                <h2>4. 이용자의 선택권</h2>
-                <p>이용자는 브라우저 설정을 통해 쿠키 저장을 제한하거나 삭제할 수 있습니다. 다만 이 경우 일부 기능 또는 광고 설정이 예상과 다르게 동작할 수 있습니다.</p>
-            </section>
+  <div class="doc-section">
+    <h2>5. 문의처</h2>
+    <p>운영자: RandomSpot<br />이메일: coehoan@gmail.com</p>
+  </div>
 
-            <section class="section">
-                <h2>5. 문의처</h2>
-                <p>
-                    운영자: RandomSpot<br>
-                    이메일: coehoan@gmail.com
-                </p>
-            </section>
+  <div class="doc-section">
+    <h2>6. 문서 갱신</h2>
+    <p>본 방침은 서비스 구조 또는 법령 변경에 따라 수정될 수 있으며, 변경 시 이 페이지에 반영합니다. 최종 수정일: 2026년 3월 24일</p>
+  </div>
 
-            <section class="section">
-                <h2>6. 문서 갱신</h2>
-                <p>본 방침은 서비스 구조 또는 법령 변경에 따라 수정될 수 있으며, 변경 시 이 페이지에 반영합니다. 최종 수정일: 2026년 3월 24일</p>
-            </section>
-        </div>
-    </section>
+  <footer class="page-footer">
+    <div class="links">
+      <a href="about.html">소개</a>
+      <a href="contact.html">문의</a>
+      <a href="terms.html">이용약관</a>
+      <a href="privacy.html">개인정보처리방침</a>
+    </div>
+    <div>© 2025 · RANDOM/SPOT · v1.0</div>
+  </footer>
 </div>
-
-<div class="footer-links">
-    <a href="about.html" style="color:#aaa; text-decoration:none;">소개</a>
-    <a href="contact.html" style="color:#aaa; text-decoration:none;">문의</a>
-    <a href="terms.html" style="color:#aaa; text-decoration:none;">이용약관</a>
-    <a href="privacy.html" style="color:#aaa; text-decoration:none;">개인정보처리방침</a>
-</div>
-
 </body>
 </html>

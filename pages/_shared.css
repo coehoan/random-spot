@@ -129,6 +129,7 @@ body::before {
   padding: 0 10px;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
+  font-weight: 700;
 }
 .hero p {
   font-size: 14px;
