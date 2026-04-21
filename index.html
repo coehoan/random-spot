@@ -17,14 +17,15 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 
   <style>
     :root {
-      --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-display: "Space Grotesk", "Pretendard Variable", sans-serif;
-      --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --font-pixel-ko: 'Galmuri11', monospace;
+      --font-title: 'Pretendard Variable', Pretendard, sans-serif;
+      --font-pixel-en: 'Press Start 2P', monospace;
 
       --bg: #f0eee7;
       --ink-1: #000000;
@@ -43,7 +44,7 @@
     body {
       background: var(--bg);
       color: var(--ink-1);
-      font-family: var(--font-sans);
+      font-family: var(--font-pixel-ko);
       font-size: 15px;
       line-height: 1.5;
       min-height: 100vh;
@@ -72,7 +73,7 @@
     }
     .brand {
       display: flex; align-items: center; gap: 14px;
-      font-family: var(--font-mono);
+      font-family: var(--font-pixel-en);
       font-size: 13px; font-weight: 700;
       text-transform: uppercase; letter-spacing: .06em;
     }
@@ -83,13 +84,13 @@
       display: grid; place-items: center;
       border: 3px solid var(--ink-1);
       box-shadow: 4px 4px 0 var(--ink-1);
-      font-family: var(--font-display); font-weight: 800;
-      font-size: 18px;
+      font-family: var(--font-pixel-en); font-weight: 700;
+      font-size: 14px;
     }
     .topbar-right { display: flex; align-items: center; gap: 14px; }
     .meta-index {
-      font-family: var(--font-mono);
-      font-size: 11px; color: var(--ink-3);
+      font-family: var(--font-pixel-en);
+      font-size: 8px; color: var(--ink-3);
       letter-spacing: .06em; text-transform: uppercase;
     }
     .chip {
@@ -98,8 +99,8 @@
       background: var(--bg);
       border: 2.5px solid var(--ink-1);
       box-shadow: 3px 3px 0 var(--ink-1);
-      font-family: var(--font-mono);
-      font-size: 11px; font-weight: 700;
+      font-family: var(--font-pixel-en);
+      font-size: 8px; font-weight: 700;
       text-transform: uppercase; letter-spacing: .05em;
     }
     .chip .dot {
@@ -119,23 +120,22 @@
       grid-template-columns: 1.6fr 1fr;
       gap: 40px;
       align-items: end;
-      padding: 12px 0 32px;
-      border-bottom: 3px solid var(--ink-1);
-      margin-bottom: 32px;
+      padding: 12px 0 16px;
+      margin-bottom: 16px;
     }
     .hero-left .tag {
       display: inline-block;
       padding: 5px 12px;
       background: var(--ink-1);
       color: var(--yellow);
-      font-family: var(--font-mono);
-      font-size: 11px; font-weight: 700;
+      font-family: var(--font-pixel-en);
+      font-size: 8px; font-weight: 700;
       text-transform: uppercase; letter-spacing: .1em;
       margin-bottom: 20px;
       white-space: nowrap;
     }
     .h1 {
-      font-family: var(--font-display);
+      font-family: var(--font-title);
       font-weight: 700;
       font-size: clamp(40px, 6.5vw, 80px);
       line-height: .96;
@@ -171,14 +171,14 @@
       color: var(--bg);
     }
     .stat-label {
-      font-family: var(--font-mono);
-      font-size: 10px; font-weight: 700;
+      font-family: var(--font-pixel-en);
+      font-size: 8px; font-weight: 700;
       text-transform: uppercase; letter-spacing: .1em;
       color: var(--ink-3);
     }
     .stat-card.dark .stat-label { color: var(--yellow); }
     .stat-value {
-      font-family: var(--font-display); font-weight: 700;
+      font-family: var(--font-title); font-weight: 700;
       font-size: 22px; line-height: 1;
       margin-top: 4px;
     }
@@ -200,12 +200,12 @@
       flex-wrap: wrap;
     }
     .section-head h2 {
-      font-family: var(--font-display); font-weight: 700;
+      font-family: var(--font-title); font-weight: 700;
       font-size: 20px; text-transform: uppercase; letter-spacing: -0.01em;
       white-space: nowrap;
     }
     .section-head .no {
-      font-family: var(--font-mono); font-size: 11px;
+      font-family: var(--font-pixel-en); font-size: 8px;
       color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em;
       white-space: nowrap;
     }
@@ -219,15 +219,15 @@
     }
     .card {
       position: relative;
-      padding: 22px 20px 20px;
+      padding: 22px 20px 44px;
       background: var(--bg);
       border: 3px solid var(--ink-1);
       box-shadow: 5px 5px 0 var(--ink-1);
       min-height: 210px;
-      display: flex; flex-direction: column; justify-content: space-between;
+      display: flex; flex-direction: column; gap: 10px;
       opacity: 0; transform: translate(8px, 8px);
       animation: brIn .35s cubic-bezier(.3,.8,.5,1) forwards;
-      font-family: var(--font-sans);
+      font-family: var(--font-pixel-ko);
       transition: transform .1s, box-shadow .1s;
     }
     .card:nth-child(1) { animation-delay: .08s; }
@@ -258,8 +258,8 @@
 
     .card-no {
       position: absolute; top: 12px; right: 12px;
-      font-family: var(--font-mono);
-      font-size: 10px; font-weight: 700;
+      font-family: var(--font-pixel-en);
+      font-size: 8px; font-weight: 700;
       padding: 3px 7px;
       border: 2px solid var(--ink-1);
       background: var(--bg);
@@ -275,7 +275,7 @@
     .card:nth-child(5) .card-icon { margin-bottom: 0; flex-shrink: 0; width: 64px; height: 64px; }
     .card-icon svg { width: 28px; height: 28px; }
     .card-title {
-      font-family: var(--font-display);
+      font-family: var(--font-title);
       font-weight: 700;
       font-size: 18px;
       text-transform: uppercase;
@@ -293,8 +293,8 @@
 
     .card-cta {
       position: absolute; right: 16px; bottom: 14px;
-      font-family: var(--font-mono);
-      font-size: 10px; font-weight: 700;
+      font-family: var(--font-pixel-en);
+      font-size: 8px; font-weight: 700;
       color: var(--ink-3);
       text-transform: uppercase; letter-spacing: .08em;
       display: flex; align-items: center; gap: 6px;
@@ -303,14 +303,7 @@
     .card:hover .card-cta { color: var(--ink-1); gap: 10px; }
     .card-cta svg { width: 12px; height: 12px; }
     .card:nth-child(5) .card-cta {
-      position: static;
-      flex-shrink: 0;
-      padding: 10px 14px;
-      border: 2.5px solid var(--ink-1);
-      background: var(--ca);
-      color: var(--ink-1);
-      font-size: 11px;
-      align-self: center;
+      position: absolute; right: 28px; bottom: 20px;
     }
 
     /* Info row */
@@ -325,21 +318,21 @@
       background: var(--bg);
       border: 3px solid var(--ink-1);
       box-shadow: 4px 4px 0 var(--ink-1);
-      font-family: var(--font-sans);
+      font-family: var(--font-pixel-ko);
     }
     .info-card .label {
       display: inline-block;
       padding: 3px 10px;
       background: var(--ink-1);
       color: var(--yellow);
-      font-family: var(--font-mono);
-      font-size: 11px; font-weight: 700;
+      font-family: var(--font-pixel-en);
+      font-size: 8px; font-weight: 700;
       text-transform: uppercase;
       letter-spacing: .08em;
       margin-bottom: 12px;
     }
     .info-card h3 {
-      font-family: var(--font-display);
+      font-family: var(--font-title);
       font-weight: 700;
       font-size: 17px;
       text-transform: uppercase;
@@ -357,11 +350,10 @@
       padding: 20px 0 0;
       border-top: 3px solid var(--ink-1);
       display: flex; align-items: center; justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 11px;
+      font-family: var(--font-pixel-ko);
+      font-size: 12px;
       color: var(--ink-3);
-      text-transform: uppercase;
-      letter-spacing: .06em;
+      letter-spacing: .02em;
     }
     footer .links a { margin-right: 18px; }
     footer .links a:hover { color: var(--ink-1); }
@@ -376,7 +368,7 @@
       color: var(--ink-1);
       border: 3px solid var(--ink-1);
       box-shadow: 6px 6px 0 var(--ink-1);
-      font-family: var(--font-sans);
+      font-family: var(--font-pixel-ko);
       font-weight: 600;
       transition: transform .3s cubic-bezier(.3,1.2,.5,1);
       z-index: 100;
@@ -390,11 +382,11 @@
       background: var(--ink-1);
       color: var(--yellow);
       display: grid; place-items: center;
-      font-family: var(--font-display); font-weight: 800;
-      font-size: 16px;
+      font-family: var(--font-pixel-en); font-weight: 700;
+      font-size: 12px;
     }
-    .toast-main { font-family: var(--font-display); text-transform: uppercase; font-size: 14px; line-height: 1.2; }
-    .toast-sub { font-family: var(--font-mono); font-size: 11px; margin-top: 2px; opacity: .75; }
+    .toast-main { font-family: var(--font-title); font-weight: 700; font-size: 14px; line-height: 1.3; }
+    .toast-sub { font-family: var(--font-pixel-en); font-size: 8px; margin-top: 4px; opacity: .75; }
 
     /* Responsive */
     @media (max-width: 980px) {
@@ -403,11 +395,13 @@
       .info { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
+      footer { flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+      footer .links { justify-content: center; gap: 20px; }
       .shell { padding: 0 16px 32px; }
       .grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-      .card { min-height: 160px; padding: 14px; }
-      .card:nth-child(5) { flex-direction: column; align-items: flex-start; }
-      .card:nth-child(5) .card-cta { align-self: flex-start; }
+      .card { min-height: 160px; padding: 14px 14px 40px; gap: 8px; }
+      .card:nth-child(5) { flex-direction: column; align-items: flex-start; padding: 14px 14px 40px; }
+      .card:nth-child(5) .card-cta { right: 14px; bottom: 14px; }
     }
   </style>
 </head>
@@ -426,7 +420,7 @@
       <path d="M4 11h16"/><path d="M4 7l2-2h12l2 2"/><rect x="4" y="5" width="16" height="14" rx="4"/><circle cx="8.5" cy="15" r="1"/><circle cx="15.5" cy="15" r="1"/>
     </symbol>
     <symbol id="i-restaurant" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M7 3v8a3 3 0 0 0 6 0V3"/><path d="M10 3v18"/><path d="M17 3c-1.5 1.5-2 3.5-2 5.5 0 2 1 3.5 2 3.5v9"/>
+      <path d="M3 9h18v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9z"/><path d="M3 9 5.5 4h13L21 9"/><path d="M10 21v-5h4v5"/>
     </symbol>
     <symbol id="i-challenge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M12 2l2.9 5.9L21 9l-4.5 4.3L17.8 20 12 16.9 6.2 20l1.3-6.7L3 9l6.1-1.1z"/>
@@ -462,13 +456,6 @@
     </div>
     <div class="hero-right">
       <div class="stat-card">
-        <div>
-          <div class="stat-label">Categories</div>
-          <div class="stat-value">05 / 05</div>
-        </div>
-        <div class="stat-arrow"><svg><use href="#i-dice"/></svg></div>
-      </div>
-      <div class="stat-card dark">
         <div>
           <div class="stat-label">Decisions today</div>
           <div class="stat-value" id="counter">1,248</div>

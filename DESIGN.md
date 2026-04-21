@@ -6,18 +6,21 @@ Neo-brutalist design system. 모든 페이지에 공통 적용.
 
 ## Fonts
 
-Google Fonts CDN으로 로드.
-
 ```html
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
 ```
 
 | 변수 | 폰트 | 용도 |
 |------|------|------|
-| `--font-display` | Space Grotesk → Pretendard Variable | 제목, 버튼, 카드 타이틀 |
-| `--font-mono` | Space Mono → SF Mono → Menlo | 레이블, 뱃지, 메타 텍스트, 푸터 |
-| `--font-sans` | Pretendard Variable → Inter | 본문, 설명 |
+| `--font-pixel-en` | Press Start 2P | 영문 레이블, 뱃지, 메타 텍스트, brand-mark, 버튼 내 영문 |
+| `--font-title` | Pretendard Variable Bold | 한글 제목 (h1, h2, 카드 타이틀) |
+| `--font-pixel-ko` | Galmuri11 | 한글 본문, 버튼, 칩, 결과 텍스트, 푸터 |
+
+- Press Start 2P는 픽셀 폰트 특성상 **font-weight: normal** 고정, 크기는 8–10px 사용
+- Galmuri11도 **font-weight: normal** 고정 (bold 시 픽셀 뭉개짐)
+- Pretendard는 font-weight: 700 사용
 
 ---
 
@@ -35,7 +38,7 @@ Google Fonts CDN으로 로드.
 --green:   #1fb25a   /* 성공 상태 */
 ```
 
-메인 페이지(`index.html`)는 별도 인라인 스타일 사용. 컬러 값은 동일 계열이나 일부 차이 있음 (`--yellow: #fde047`, `--ink-1: #000000`).
+메인 페이지(`index.html`)는 별도 인라인 스타일 사용. 폰트 변수명은 동일하게 통일됨. 컬러 값은 일부 차이 있음 (`--yellow: #fde047`, `--ink-1: #000000`).
 
 ---
 
