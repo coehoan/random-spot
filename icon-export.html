@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Icon Export — RANDOM / SPOT</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f0eee7;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 11px;
+      padding: 40px 32px;
+      background-image:
+        linear-gradient(to right, rgba(17,17,17,.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(17,17,17,.04) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    h2 { font-size: 9px; letter-spacing: .1em; color: #6a6a66; margin-bottom: 24px; padding-bottom: 10px; border-bottom: 2px solid #111; }
+    .section { margin-bottom: 48px; }
+    .row { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-end; }
+    .item { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .label { font-size: 7px; color: #6a6a66; letter-spacing: .08em; text-align: center; line-height: 1.8; }
+    canvas { border: 2px solid #111; display: block; }
+    button {
+      margin-top: 6px;
+      padding: 8px 14px;
+      background: #111;
+      color: #ffed3a;
+      border: none;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 7px;
+      letter-spacing: .06em;
+      cursor: pointer;
+    }
+    button:hover { background: #ffed3a; color: #111; }
+  </style>
+</head>
+<body>
+
+<div class="section">
+  <h2>// EXPORT — 클릭하면 PNG 다운로드</h2>
+
+  <div class="row">
+
+    <!-- favicon 32x32 -->
+    <div class="item">
+      <canvas id="c-favicon" width="32" height="32" style="width:64px;height:64px;image-rendering:pixelated;"></canvas>
+      <button onclick="dl('c-favicon','favicon-32.png')">DOWNLOAD</button>
+    </div>
+
+    <!-- favicon 64x64 -->
+    <div class="item">
+      <canvas id="c-favicon64" width="64" height="64" style="width:96px;height:96px;"></canvas>
+      <button onclick="dl('c-favicon64','favicon-64.png')">DOWNLOAD</button>
+      <div class="label">favicon 2x<br>64×64</div>
+    </div>
+
+    <!-- apple-touch-icon 180x180 -->
+    <div class="item">
+      <canvas id="c-apple" width="180" height="180" style="width:180px;height:180px;"></canvas>
+      <button onclick="dl('c-apple','apple-touch-icon.png')">DOWNLOAD</button>
+      <div class="label">apple-touch-icon<br>180×180</div>
+    </div>
+
+    <!-- icon-192 -->
+    <div class="item">
+      <canvas id="c-192" width="192" height="192" style="width:120px;height:120px;"></canvas>
+      <button onclick="dl('c-192','icon-192.png')">DOWNLOAD</button>
+      <div class="label">PWA icon<br>192×192</div>
+    </div>
+
+    <!-- icon-512 -->
+    <div class="item">
+      <canvas id="c-512" width="512" height="512" style="width:120px;height:120px;"></canvas>
+      <button onclick="dl('c-512','icon-512.png')">DOWNLOAD</button>
+      <div class="label">PWA icon<br>512×512</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <h2>// OG IMAGE — 1200×630</h2>
+  <div class="item" style="align-items:flex-start;">
+    <canvas id="c-og" width="1200" height="630" style="width:720px;height:378px;border:2.5px solid #111;box-shadow:6px 6px 0 #111;"></canvas>
+    <button onclick="dl('c-og','og-main.png')" style="margin-top:12px;">DOWNLOAD og-main.png</button>
+    <div class="label" style="margin-top:6px;">og-main.png — 1200×630</div>
+  </div>
+</div>
+
+<script>
+const PAPER = '#f0eee7';
+const INK   = '#111111';
+const YELLOW = '#ffed3a';
+const BLUE   = '#38bdf8';
+const GREEN  = '#4ade80';
+const PINK   = '#fb7185';
+const ORANGE = '#fb923c';
+
+// Press Start 2P fallback: wait for font load
+document.fonts.ready.then(() => {
+  drawAll();
+});
+
+function drawAll() {
+  drawIcon(document.getElementById('c-favicon'), 32);
+  drawIcon(document.getElementById('c-favicon64'), 64);
+  drawIcon(document.getElementById('c-apple'), 180);
+  drawIcon(document.getElementById('c-192'), 192);
+  drawIcon(document.getElementById('c-512'), 512);
+  drawOG(document.getElementById('c-og'));
+}
+
+// ── Icon A: 페이퍼 + 격자 + 옐로우 박스 R + 하드섀도우 ──
+function drawIcon(canvas, size) {
+  const ctx = canvas.getContext('2d');
+  const s = size;
+
+  // yellow bg
+  ctx.fillStyle = YELLOW;
+  ctx.fillRect(0, 0, s, s);
+
+  // R
+  const fontSize = Math.round(s * 0.58);
+  ctx.fillStyle = INK;
+  ctx.font = `${fontSize}px 'Press Start 2P', monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('R', s / 2, s / 2);
+}
+
+// ── OG-B: 페이퍼 + 컬러 스트라이프 ──
+function drawOG(canvas) {
+  const ctx = canvas.getContext('2d');
+  const W = 1200, H = 630;
+
+  // bg
+  ctx.fillStyle = PAPER;
+  ctx.fillRect(0, 0, W, H);
+
+  // grid
+  ctx.strokeStyle = 'rgba(17,17,17,0.07)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 32) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 32) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // color stripes (right side)
+  const stripes = [BLUE, GREEN, PINK, YELLOW];
+  const stripeW = 95;
+  const stripeStart = W - stripes.length * stripeW;
+  stripes.forEach((color, i) => {
+    ctx.fillStyle = color;
+    ctx.fillRect(stripeStart + i * stripeW, 0, stripeW, H);
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(stripeStart + i * stripeW, 0, stripeW, H);
+  });
+
+  // brand mark box
+  ctx.fillStyle = INK;
+  ctx.fillRect(64, 64, 80, 80);
+  ctx.font = "46px 'Press Start 2P', monospace";
+  ctx.fillStyle = YELLOW;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('R', 104, 104);
+
+  // brand name
+  ctx.fillStyle = INK;
+  ctx.font = "13px 'Press Start 2P', monospace";
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('RANDOM', 162, 96);
+  ctx.fillText('/ SPOT', 162, 124);
+
+  // main heading
+  ctx.fillStyle = INK;
+  ctx.font = "bold 130px 'Pretendard Variable', 'Pretendard', sans-serif";
+  ctx.textAlign = 'left';
+  ctx.fillText('오늘', 64, 300);
+  ctx.fillText('뭐하지?', 64, 450);
+
+  // sub
+  ctx.font = "22px 'Pretendard Variable', 'Pretendard', sans-serif";
+  ctx.fillStyle = '#6a6a66';
+  ctx.fillText('랜덤 여행지 · 교통 · 지하철 · 식당 · 챌린지', 64, 530);
+
+  // url
+  ctx.font = "11px 'Press Start 2P', monospace";
+  ctx.fillStyle = '#6a6a66';
+  ctx.fillText('randomspot.netlify.app', 64, 580);
+}
+
+function dl(id, filename) {
+  const canvas = document.getElementById(id);
+  const a = document.createElement('a');
+  a.download = filename;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+</script>
+</body>
+</html>
