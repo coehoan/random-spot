@@ -1,0 +1,7 @@
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <rect width="180" height="180" fill="#ffed3a"/>
+  <rect x="0" y="0" width="180" height="180" fill="none" stroke="#111111" stroke-width="10"/>
+  <text x="90" y="128" text-anchor="middle"
+    font-family="'Press Start 2P', monospace"
+    font-size="96" fill="#111111">R</text>
+</svg>
