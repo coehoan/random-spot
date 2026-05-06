@@ -19,20 +19,7 @@
   <link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
   <link rel="stylesheet" href="_shared.css" />
-  <style>
-    .map-link-actions {
-      margin-top: 12px;
-      display: none;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .map-link-actions.is-visible { display: flex; }
-    .map-link-actions .secondary-btn { flex: 1; min-width: 180px; }
-    .naver-map-btn { background: #03c75a; color: #fff; border-color: var(--ink-1); }
-    .naver-map-btn:hover { background: #02b350; }
-    .kakao-map-btn { background: #fee500; color: #191919; border-color: var(--ink-1); }
-    .kakao-map-btn:hover { background: #f4db00; }
-  </style>
+  <link rel="stylesheet" href="restaurant.css" />
 </head>
 <body>
 
@@ -60,12 +47,33 @@
 
   <section class="howto">
     <h2>사용 방법</h2>
-    <p>원하는 반경을 고른 뒤 "현재 위치에서 찾기"를 누르면, 지금 있는 곳 근처 식당 중 한 곳을 랜덤으로 추천합니다. 점심 메뉴가 안 떠오르거나 가까운 곳에서 빠르게 고르고 싶을 때 가볍게 써보세요.</p>
+    <p>원하는 반경을 고른 뒤 "현재 위치에서 찾기"를 누르면, 기준 위치 근처 식당 중 한 곳을 랜덤으로 추천합니다. 위치가 다르게 잡히면 다시 조회하거나 주소를 직접 지정해 주세요.</p>
     <ul>
       <li>100m, 500m처럼 좁은 반경은 후보가 적거나 없을 수 있으니 필요하면 범위를 넓혀보세요.</li>
       <li>추천 결과가 나오면 지도에서 위치를 확인하고, 네이버지도나 카카오지도로 바로 열 수 있어요.</li>
     </ul>
     <p class="muted">※ 현재 위치 확인을 위해 브라우저 위치 권한 허용이 필요합니다.</p>
+  </section>
+
+  <section class="loc-block">
+    <div class="loc-block-head">
+      <div class="filter-row-text">
+        <div class="filter-row-title">기준 위치</div>
+        <div class="filter-row-desc">이 위치를 중심으로 반경 안 식당을 찾습니다.</div>
+      </div>
+      <span class="loc-tag is-unknown" id="locTag">미확인</span>
+    </div>
+    <div class="loc-card" id="locCard">
+      <span class="loc-pin" id="locPin">📍</span>
+      <div class="loc-text">
+        <div class="loc-addr" id="locAddr">위치를 확인하지 않았습니다.</div>
+        <div class="loc-sub" id="locSub">아래 버튼으로 현재 위치를 가져오거나 직접 설정하세요.</div>
+      </div>
+    </div>
+    <div class="loc-actions">
+      <button type="button" class="secondary-btn" id="locRefetchBtn"><span class="icon">📍</span> 현재 위치 가져오기</button>
+      <button type="button" class="secondary-btn" id="locManualBtn"><span class="icon">⌕</span> 위치 직접 설정</button>
+    </div>
   </section>
 
   <div class="filters">
@@ -74,7 +82,6 @@
       <div class="filter-row-desc">선택한 반경 안에서만 식당을 찾습니다.</div>
     </div>
     <div id="radiusChips" class="chips"></div>
-    <div id="inlineStatus" class="helper">위치 권한을 허용하면 현재 위치 기준으로 식당을 찾습니다.</div>
   </div>
 
   <button id="startBtn" class="btn-primary">현재 위치에서 찾기 →</button>
@@ -104,6 +111,28 @@
   </footer>
 </div>
 
+<div class="loc-modal-backdrop dis-none" id="locModalBackdrop">
+  <div class="loc-modal" role="dialog" aria-modal="true" aria-labelledby="locModalTitle">
+    <div class="loc-modal-head">
+      <div>
+        <div class="loc-modal-eyebrow">// SET LOCATION</div>
+        <h2 id="locModalTitle">위치 직접 설정</h2>
+      </div>
+      <button type="button" class="loc-modal-close" id="locModalClose" aria-label="닫기">×</button>
+    </div>
+    <p class="loc-modal-desc">주소, 지명, 역 이름으로 검색한 뒤 결과에서 기준 위치를 선택하세요.</p>
+    <div class="loc-search-row">
+      <input type="text" id="locModalInput" class="loc-input" inputmode="search" autocomplete="street-address" placeholder="예: 가산디지털2로 95, 강남역" />
+      <button type="button" class="secondary-btn" id="locModalSearchBtn">검색</button>
+    </div>
+    <div class="loc-suggest" id="locModalResults"></div>
+    <div class="loc-modal-foot">
+      <button type="button" class="secondary-btn" id="locModalCancel">취소</button>
+      <button type="button" class="btn-primary" id="locModalConfirm">이 위치로 설정 →</button>
+    </div>
+  </div>
+</div>
+
 <script>
     const SEARCH_ENDPOINT = "/.netlify/functions/kakao-local-restaurant";
     const RADIUS_OPTIONS = [
@@ -116,7 +145,18 @@
     const toast = document.getElementById("toast");
     const goMainBtn = document.getElementById("goMainBtn");
     const radiusChipsEl = document.getElementById("radiusChips");
-    const inlineStatus = document.getElementById("inlineStatus");
+    const locTag = document.getElementById("locTag");
+    const locAddr = document.getElementById("locAddr");
+    const locSub = document.getElementById("locSub");
+    const locRefetchBtn = document.getElementById("locRefetchBtn");
+    const locManualBtn = document.getElementById("locManualBtn");
+    const locModalBackdrop = document.getElementById("locModalBackdrop");
+    const locModalInput = document.getElementById("locModalInput");
+    const locModalSearchBtn = document.getElementById("locModalSearchBtn");
+    const locModalResults = document.getElementById("locModalResults");
+    const locModalClose = document.getElementById("locModalClose");
+    const locModalCancel = document.getElementById("locModalCancel");
+    const locModalConfirm = document.getElementById("locModalConfirm");
     const startBtn = document.getElementById("startBtn");
     const bubbleWrap = document.getElementById("bubbleWrap");
     const bubble = document.getElementById("bubble");
@@ -129,6 +169,7 @@
 
     let selectedRadius = 1000;
     let isBusy = false;
+    let isResolvingLocation = false;
     let mapRequestToken = 0;
     let mapInstance = null;
     let geocoder = null;
@@ -137,6 +178,10 @@
     let radiusCircle = null;
     let infoWindow = null;
     let lastResult = null;
+    let selectedLocation = null;
+    let manualSearchResults = [];
+    let selectedManualLocation = null;
+    const locState = { mode: "unknown", address: "", sub: "" };
 
     function showToast(message) {
         toast.textContent = message;
@@ -144,9 +189,48 @@
         setTimeout(() => toast.classList.remove("show"), 2000);
     }
 
-    function setInlineStatus(message, isError = false) {
-        inlineStatus.textContent = message;
-        inlineStatus.style.color = isError ? "#b91c1c" : "";
+    function getLocationLabel(location) {
+        return location?.label || location?.roadAddress || location?.jibunAddress || "현재 위치 기준";
+    }
+
+    function renderLoc() {
+        locTag.className = `loc-tag is-${locState.mode}`;
+
+        if (locState.mode === "gps") {
+            locTag.textContent = "현재 위치";
+        } else if (locState.mode === "manual") {
+            locTag.textContent = "직접 설정";
+        } else {
+            locTag.textContent = "미확인";
+        }
+
+        locAddr.textContent = locState.address || "위치를 확인하지 않았습니다.";
+        locSub.textContent = locState.sub || "아래 버튼으로 현재 위치를 가져오거나 직접 설정하세요.";
+    }
+
+    function updateLocationStatus() {
+        if (!selectedLocation) {
+            renderLoc();
+            return;
+        }
+        renderLoc();
+    }
+
+    function setSelectedLocation(location) {
+        selectedLocation = location;
+        locState.mode = location?.source === "manual" ? "manual" : "gps";
+        locState.address = getLocationLabel(location);
+        locState.sub = locState.mode === "manual" ? "사용자가 입력한 위치" : "GPS로 확인한 위치";
+        renderLoc();
+        updateLocationStatus();
+    }
+
+    function setLocationControlsDisabled(disabled) {
+        locRefetchBtn.disabled = disabled;
+        locManualBtn.disabled = disabled;
+        locModalConfirm.disabled = disabled;
+        locModalInput.disabled = disabled;
+        locModalSearchBtn.disabled = disabled;
     }
 
     function showMapPanel() {
@@ -178,6 +262,13 @@
             .replaceAll("'", "&#39;");
     }
 
+    function normalizeAddressKey(value) {
+        return String(value || "")
+            .replace(/\s+/g, "")
+            .replace(/[(),.-]/g, "")
+            .trim();
+    }
+
     function isMobileDevice() {
         return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     }
@@ -193,6 +284,7 @@
             chip.addEventListener("click", () => {
                 selectedRadius = option.value;
                 renderRadiusChips();
+                updateLocationStatus();
             });
             radiusChipsEl.appendChild(chip);
         });
@@ -272,6 +364,145 @@
                 });
             });
         });
+    }
+
+    function searchAddressResults(query) {
+        return new Promise((resolve, reject) => {
+            geocoder.addressSearch(query, (result, status) => {
+                if (status !== window.kakao.maps.services.Status.OK || !Array.isArray(result) || result.length === 0) {
+                    resolve([]);
+                    return;
+                }
+
+                resolve(result
+                    .map((item) => ({
+                        latitude: Number(item.y),
+                        longitude: Number(item.x),
+                        label: item.road_address?.address_name || item.address_name || query,
+                        roadAddress: item.road_address?.address_name || "",
+                        jibunAddress: item.address?.address_name || item.address_name || "",
+                        source: "manual",
+                        type: "address"
+                    }))
+                    .filter((item) => Number.isFinite(item.latitude) && Number.isFinite(item.longitude)));
+            });
+        });
+    }
+
+    function searchKeywordLocationResults(query) {
+        return new Promise((resolve, reject) => {
+            const Places = window.kakao?.maps?.services?.Places;
+            if (!Places) {
+                resolve([]);
+                return;
+            }
+
+            const places = new Places();
+            places.keywordSearch(query, (result, status) => {
+                if (status !== window.kakao.maps.services.Status.OK || !Array.isArray(result) || result.length === 0) {
+                    resolve([]);
+                    return;
+                }
+
+                resolve(result
+                    .map((item) => ({
+                        latitude: Number(item.y),
+                        longitude: Number(item.x),
+                        label: item.place_name || query,
+                        roadAddress: item.road_address_name || "",
+                        jibunAddress: item.address_name || "",
+                        source: "manual",
+                        type: "place"
+                    }))
+                    .filter((item) => Number.isFinite(item.latitude) && Number.isFinite(item.longitude)));
+            }, {
+                size: 10
+            });
+        });
+    }
+
+    async function searchManualLocations(query) {
+        await ensureKakaoMapSdk();
+        const [addresses, places] = await Promise.all([
+            searchAddressResults(query),
+            searchKeywordLocationResults(query)
+        ]);
+        const deduped = new Map();
+
+        [...addresses, ...places].forEach((item) => {
+            const normalizedAddress = normalizeAddressKey(item.roadAddress || item.jibunAddress || "");
+            const key = normalizedAddress || `${item.latitude.toFixed(5)},${item.longitude.toFixed(5)}`;
+            if (!deduped.has(key)) {
+                deduped.set(key, item);
+            }
+        });
+
+        return Array.from(deduped.values());
+    }
+
+    async function resolveCurrentLocation() {
+        await ensureKakaoMapSdk();
+        const position = await getCurrentPosition();
+        const location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            source: "gps"
+        };
+
+        try {
+            const address = await reverseGeocodePosition(location.latitude, location.longitude);
+            return {
+                ...location,
+                ...address
+            };
+        } catch (error) {
+            return {
+                ...location,
+                label: "현재 위치 기준"
+            };
+        }
+    }
+
+    function resetManualSearchResults(message = "검색어를 입력한 뒤 결과를 선택하세요.") {
+        manualSearchResults = [];
+        selectedManualLocation = null;
+        locModalResults.innerHTML = `<div class="loc-suggest-item" aria-disabled="true">${escapeHtml(message)}</div>`;
+        locModalConfirm.disabled = true;
+    }
+
+    function renderManualSearchResults(results) {
+        manualSearchResults = results;
+        selectedManualLocation = null;
+        locModalConfirm.disabled = true;
+
+        if (results.length === 0) {
+            locModalResults.innerHTML = `<div class="loc-suggest-item" aria-disabled="true">검색 결과가 없습니다. 주소나 장소명을 더 구체적으로 입력해 주세요.</div>`;
+            return;
+        }
+
+        locModalResults.innerHTML = results.map((item, index) => {
+            const address = item.roadAddress || item.jibunAddress || "";
+            const typeLabel = item.type === "address" ? "주소" : "장소";
+            return `
+                <button type="button" class="loc-suggest-item" data-index="${index}">
+                    ${escapeHtml(item.label)}
+                    <span>${escapeHtml(typeLabel)}${address ? ` · ${escapeHtml(address)}` : ""}</span>
+                </button>
+            `;
+        }).join("");
+    }
+
+    function selectManualSearchResult(index) {
+        const location = manualSearchResults[index];
+        if (!location) {
+            return;
+        }
+
+        selectedManualLocation = location;
+        locModalResults.querySelectorAll(".loc-suggest-item").forEach((item) => {
+            item.classList.toggle("is-selected", Number(item.dataset.index) === index);
+        });
+        locModalConfirm.disabled = false;
     }
 
     async function requestRandomRestaurant(payload) {
@@ -470,31 +701,18 @@
         const requestToken = ++mapRequestToken;
         isBusy = true;
         startBtn.disabled = true;
-        startBtn.textContent = "현재 위치 확인 중..";
+        setLocationControlsDisabled(true);
+        startBtn.textContent = "기준 위치 확인 중..";
         bubbleWrap.classList.add("dis-none");
         hideMapCanvas();
         setMapStatus("현재 위치와 식당 정보를 확인하는 중입니다...");
 
         try {
-            await ensureKakaoMapSdk();
-
-            const position = await getCurrentPosition();
+            const currentLocation = selectedLocation || await resolveCurrentLocation();
             if (requestToken !== mapRequestToken) {
                 return;
             }
-
-            const currentLocation = {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude
-            };
-
-            setInlineStatus("현재 위치 주소를 확인하는 중입니다.");
-            const currentAddress = await reverseGeocodePosition(currentLocation.latitude, currentLocation.longitude);
-            if (requestToken !== mapRequestToken) {
-                return;
-            }
-
-            setInlineStatus(`기준 위치: ${currentAddress.label || "현재 위치 기준"} · 반경 ${formatDistance(selectedRadius)}`);
+            setSelectedLocation(currentLocation);
 
             const searchResult = await requestRandomRestaurant({
                 latitude: currentLocation.latitude,
@@ -507,7 +725,11 @@
 
             lastResult = {
                 currentLocation,
-                currentAddress,
+                currentAddress: {
+                    label: getLocationLabel(currentLocation),
+                    roadAddress: currentLocation.roadAddress || "",
+                    jibunAddress: currentLocation.jibunAddress || ""
+                },
                 restaurant: searchResult.restaurant
             };
 
@@ -529,6 +751,8 @@
                 message = "이 브라우저는 위치 정보를 지원하지 않습니다.";
             } else if (error.message === "REVERSE_GEOCODE_FAILED") {
                 message = "현재 위치 주소를 확인하지 못했습니다.";
+            } else if (error.message === "ADDRESS_SEARCH_FAILED" || error.message === "PLACE_SEARCH_FAILED") {
+                message = "입력한 위치를 찾지 못했습니다.";
             } else if (error.message === "KAKAO_MAP_SDK_LOADER_UNAVAILABLE" || error.message === "KAKAO_MAP_SDK_UNAVAILABLE") {
                 message = "카카오맵 SDK를 불러오지 못했습니다.";
             } else if (error.message === "KAKAO_MAP_JAVASCRIPT_KEY_MISSING") {
@@ -537,14 +761,99 @@
                 message = error.message;
             }
 
-            setInlineStatus(message, true);
             setMapStatus(message, true);
             showToast(message);
             startBtn.textContent = "현재 위치에서 찾기 →";
         } finally {
             isBusy = false;
             startBtn.disabled = false;
+            setLocationControlsDisabled(false);
         }
+    }
+
+    async function handleRefreshLocation() {
+        if (isBusy || isResolvingLocation) {
+            return;
+        }
+
+        isResolvingLocation = true;
+        setLocationControlsDisabled(true);
+        locSub.textContent = "현재 위치를 다시 확인하는 중입니다.";
+
+        try {
+            const location = await resolveCurrentLocation();
+            setSelectedLocation(location);
+            locModalInput.value = "";
+            showToast("현재 위치를 다시 설정했습니다.");
+        } catch (error) {
+            console.error(error);
+
+            let message = "현재 위치를 다시 확인하지 못했습니다.";
+            if (error.message === "GEOLOCATION_UNSUPPORTED") {
+                message = "이 브라우저는 위치 정보를 지원하지 않습니다.";
+            }
+
+            locSub.textContent = message;
+            showToast(message);
+        } finally {
+            isResolvingLocation = false;
+            setLocationControlsDisabled(false);
+        }
+    }
+
+    function openLocationModal() {
+        locModalInput.value = locState.mode === "manual" ? locState.address : "";
+        resetManualSearchResults();
+        locModalBackdrop.classList.remove("dis-none");
+
+        window.setTimeout(() => {
+            locModalInput.focus();
+            locModalInput.select();
+        }, 50);
+    }
+
+    function closeLocationModal() {
+        locModalBackdrop.classList.add("dis-none");
+    }
+
+    async function handleManualLocationSearch() {
+        if (isBusy || isResolvingLocation) {
+            return;
+        }
+
+        const query = locModalInput.value.trim();
+        if (!query) {
+            resetManualSearchResults("주소나 장소명을 입력해 주세요.");
+            locModalInput.focus();
+            return;
+        }
+
+        isResolvingLocation = true;
+        setLocationControlsDisabled(true);
+        locModalResults.innerHTML = `<div class="loc-suggest-item" aria-disabled="true">검색 중입니다...</div>`;
+
+        try {
+            const results = await searchManualLocations(query);
+            renderManualSearchResults(results);
+        } catch (error) {
+            console.error(error);
+            resetManualSearchResults("위치 검색 중 오류가 발생했습니다.");
+            showToast("위치를 찾지 못했습니다.");
+        } finally {
+            isResolvingLocation = false;
+            setLocationControlsDisabled(false);
+        }
+    }
+
+    function handleManualLocationConfirm() {
+        if (!selectedManualLocation) {
+            resetManualSearchResults("검색 결과에서 위치를 먼저 선택해 주세요.");
+            return;
+        }
+
+        setSelectedLocation(selectedManualLocation);
+        showToast("기준 위치를 변경했습니다.");
+        closeLocationModal();
     }
 
     goMainBtn.addEventListener("click", (e) => {
@@ -553,6 +862,36 @@
     });
 
     startBtn.addEventListener("click", handleSearch);
+    locRefetchBtn.addEventListener("click", handleRefreshLocation);
+    locManualBtn.addEventListener("click", openLocationModal);
+    locModalClose.addEventListener("click", closeLocationModal);
+    locModalCancel.addEventListener("click", closeLocationModal);
+    locModalSearchBtn.addEventListener("click", handleManualLocationSearch);
+    locModalConfirm.addEventListener("click", handleManualLocationConfirm);
+    locModalBackdrop.addEventListener("click", (event) => {
+        if (event.target === locModalBackdrop) {
+            closeLocationModal();
+        }
+    });
+    locModalResults.addEventListener("click", (event) => {
+        const item = event.target.closest("[data-index]");
+        if (!item) {
+            return;
+        }
+
+        selectManualSearchResult(Number(item.dataset.index));
+    });
+    locModalInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            handleManualLocationSearch();
+        }
+    });
+    window.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !locModalBackdrop.classList.contains("dis-none")) {
+            closeLocationModal();
+        }
+    });
 
     openNaverBtn.addEventListener("click", () => {
         if (!lastResult?.restaurant) {
@@ -572,6 +911,7 @@
 
     window.addEventListener("load", () => {
         renderRadiusChips();
+        renderLoc();
         hideMapCanvas();
 
         if (typeof window.loadKakaoMapSdk === "function") {
