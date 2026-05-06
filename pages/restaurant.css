@@ -1,3 +1,14 @@
+.is-location-modal-open {
+  overflow: hidden;
+}
+
+body.is-location-modal-open {
+  position: fixed;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
 .map-link-actions {
   margin-top: 12px;
   display: none;
@@ -137,6 +148,7 @@
   width: min(520px, 100%);
   max-height: 90vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   border: var(--border);
   background: var(--paper);
   box-shadow: var(--shadow-hard);

@@ -192,12 +192,36 @@
     let selectedLocation = null;
     let manualSearchResults = [];
     let selectedManualLocation = null;
+    let modalScrollY = 0;
     const locState = {mode: "unknown", address: "", sub: ""};
 
     function showToast(message) {
         toast.textContent = message;
         toast.classList.add("show");
         setTimeout(() => toast.classList.remove("show"), 2000);
+    }
+
+    function lockPageScroll() {
+        if (document.body.classList.contains("is-location-modal-open")) {
+            return;
+        }
+
+        modalScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        document.documentElement.classList.add("is-location-modal-open");
+        document.body.classList.add("is-location-modal-open");
+        document.body.style.top = `-${modalScrollY}px`;
+    }
+
+    function unlockPageScroll() {
+        if (!document.body.classList.contains("is-location-modal-open")) {
+            return;
+        }
+
+        document.documentElement.classList.remove("is-location-modal-open");
+        document.body.classList.remove("is-location-modal-open");
+        document.body.style.top = "";
+        window.scrollTo(0, modalScrollY);
+        modalScrollY = 0;
     }
 
     function getLocationLabel(location) {
@@ -776,6 +800,15 @@
         window.open(urls.webUrl, "_blank", "noopener,noreferrer");
     }
 
+    function openMapWebUrl(url) {
+        if (isMobileDevice()) {
+            window.location.href = url;
+            return;
+        }
+
+        window.open(url, "_blank", "noopener,noreferrer");
+    }
+
     async function handleSearch() {
         if (isBusy) {
             return;
@@ -887,6 +920,7 @@
     function openLocationModal() {
         locModalInput.value = locState.mode === "manual" ? locState.address : "";
         resetManualSearchResults();
+        lockPageScroll();
         locModalBackdrop.classList.remove("dis-none");
 
         window.setTimeout(() => {
@@ -897,6 +931,7 @@
 
     function closeLocationModal() {
         locModalBackdrop.classList.add("dis-none");
+        unlockPageScroll();
     }
 
     async function handleManualLocationSearch() {
@@ -989,7 +1024,7 @@
             return;
         }
 
-        window.open(buildKakaoUrl(lastResult.restaurant), "_blank", "noopener,noreferrer");
+        openMapWebUrl(buildKakaoUrl(lastResult.restaurant));
     });
 
     window.addEventListener("load", () => {
