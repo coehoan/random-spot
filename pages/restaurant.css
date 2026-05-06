@@ -294,6 +294,10 @@ body.is-location-modal-open {
 }
 
 @media (max-width: 560px) {
+  .loc-input {
+    font-size: 16px;
+  }
+
   .loc-block-head,
   .loc-actions,
   .loc-search-row,
