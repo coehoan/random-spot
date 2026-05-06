@@ -86,8 +86,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: var(--border-thin);
-  background: var(--paper);
   font-size: 16px;
   line-height: 1;
 }
@@ -225,6 +223,17 @@
 
 .loc-suggest-item:hover {
   background: var(--yellow);
+}
+
+.loc-suggest-empty {
+  padding: 11px 12px;
+  border: var(--border-thin);
+  background: var(--paper-2);
+  color: var(--ink-3);
+  font-family: var(--font-title);
+  font-size: 13px;
+  line-height: 1.6;
+  cursor: default;
 }
 
 .loc-suggest-item.is-selected {

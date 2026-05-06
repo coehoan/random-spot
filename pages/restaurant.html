@@ -1,145 +1,156 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta property="og:image" content="https://randomspot.netlify.app/static/img/og-main2.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <title>내 주변 랜덤 식당 — RANDOM / SPOT</title>
-  <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png" />
-  <link rel="manifest" href="/site.webmanifest" />
-  <meta name="theme-color" content="#f0eee7" />
-  <meta name="apple-mobile-web-app-title" content="RandomSpot" />
-  <script src="/static/js/kakao-map-loader.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
-  <link rel="stylesheet" href="_shared.css" />
-  <link rel="stylesheet" href="restaurant.css" />
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+    <meta property="og:image" content="https://randomspot.netlify.app/static/img/og-main2.png"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <title>내 주변 랜덤 식당 — RANDOM / SPOT</title>
+    <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml"/>
+    <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png"/>
+    <link rel="manifest" href="/site.webmanifest"/>
+    <meta name="theme-color" content="#f0eee7"/>
+    <meta name="apple-mobile-web-app-title" content="RandomSpot"/>
+    <script src="/static/js/kakao-map-loader.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css" rel="stylesheet"/>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"/>
+    <link rel="stylesheet" href="_shared.css"/>
+    <link rel="stylesheet" href="restaurant.css"/>
 </head>
 <body>
 
 <div id="toast" class="toast"></div>
 
 <div class="shell">
-  <header class="topbar">
-    <a class="brand" href="../index.html">
-      <span class="brand-mark">R</span>
-      <span class="brand-name">RANDOM / SPOT</span>
-    </a>
-    <a id="goMainBtn" class="go-main" href="../index.html">
-      <span>←</span> 메인으로
-    </a>
-  </header>
+    <header class="topbar">
+        <a class="brand" href="../index.html">
+            <span class="brand-mark">R</span>
+            <span class="brand-name">RANDOM / SPOT</span>
+        </a>
+        <a id="goMainBtn" class="go-main" href="../index.html">
+            <span>←</span> 메인으로
+        </a>
+    </header>
 
-  <section class="hero">
-    <div class="hero-meta">
-      <span class="no">N° 04</span>
-      <span class="cat">// RESTAURANT</span>
+    <section class="hero">
+        <div class="hero-meta">
+            <span class="no">N° 04</span>
+            <span class="cat">// RESTAURANT</span>
+        </div>
+        <h1>내 주변 <span class="mark">식당</span></h1>
+        <p>현재 위치 기준 반경 안 식당만 모아서, 그중 한 곳을 랜덤으로 추천합니다.</p>
+    </section>
+
+    <section class="howto">
+        <h2>사용 방법</h2>
+        <p>원하는 반경을 고른 뒤 "현재 위치에서 찾기"를 누르면, 기준 위치 근처 식당 중 한 곳을 랜덤으로 추천합니다. 위치가 다르게 잡히면 다시 조회하거나 주소를 직접 지정해 주세요.</p>
+        <ul>
+            <li>100m, 500m처럼 좁은 반경은 후보가 적거나 없을 수 있으니 필요하면 범위를 넓혀보세요.</li>
+            <li>추천 결과가 나오면 지도에서 위치를 확인하고, 네이버지도나 카카오지도로 바로 열 수 있어요.</li>
+        </ul>
+        <p class="muted">※ 현재 위치 확인을 위해 브라우저 위치 권한 허용이 필요합니다.</p>
+    </section>
+
+    <section class="loc-block">
+        <div class="loc-block-head">
+            <div class="filter-row-text">
+                <div class="filter-row-title">기준 위치</div>
+                <div class="filter-row-desc">이 위치를 중심으로 반경 안 식당을 찾습니다.</div>
+            </div>
+            <span class="loc-tag is-unknown" id="locTag">미확인</span>
+        </div>
+        <div class="loc-card" id="locCard">
+            <span class="loc-pin" id="locPin">📍</span>
+            <div class="loc-text">
+                <div class="loc-addr" id="locAddr">위치를 확인하지 않았습니다.</div>
+                <div class="loc-sub" id="locSub">아래 버튼으로 현재 위치를 가져오거나 직접 설정하세요.</div>
+            </div>
+        </div>
+        <div class="loc-actions">
+            <button type="button" class="secondary-btn" id="locRefetchBtn"><span class="icon">📍</span> 현재 위치 가져오기
+            </button>
+            <button type="button" class="secondary-btn" id="locManualBtn"><span class="icon">⌕</span> 위치 직접 설정</button>
+        </div>
+    </section>
+
+    <div class="filters">
+        <div class="filter-row-text" style="padding-left:2px;">
+            <div class="filter-row-title">검색 반경 선택</div>
+            <div class="filter-row-desc">선택한 반경 안에서만 식당을 찾습니다.</div>
+        </div>
+        <div id="radiusChips" class="chips"></div>
     </div>
-    <h1>내 주변 <span class="mark">식당</span></h1>
-    <p>현재 위치 기준 반경 안 식당만 모아서, 그중 한 곳을 랜덤으로 추천합니다.</p>
-  </section>
 
-  <section class="howto">
-    <h2>사용 방법</h2>
-    <p>원하는 반경을 고른 뒤 "현재 위치에서 찾기"를 누르면, 기준 위치 근처 식당 중 한 곳을 랜덤으로 추천합니다. 위치가 다르게 잡히면 다시 조회하거나 주소를 직접 지정해 주세요.</p>
-    <ul>
-      <li>100m, 500m처럼 좁은 반경은 후보가 적거나 없을 수 있으니 필요하면 범위를 넓혀보세요.</li>
-      <li>추천 결과가 나오면 지도에서 위치를 확인하고, 네이버지도나 카카오지도로 바로 열 수 있어요.</li>
-    </ul>
-    <p class="muted">※ 현재 위치 확인을 위해 브라우저 위치 권한 허용이 필요합니다.</p>
-  </section>
+    <button id="startBtn" class="btn-primary">현재 위치에서 찾기 →</button>
 
-  <section class="loc-block">
-    <div class="loc-block-head">
-      <div class="filter-row-text">
-        <div class="filter-row-title">기준 위치</div>
-        <div class="filter-row-desc">이 위치를 중심으로 반경 안 식당을 찾습니다.</div>
-      </div>
-      <span class="loc-tag is-unknown" id="locTag">미확인</span>
+    <div id="bubbleWrap" class="bubble-wrap dis-none">
+        <div id="bubble" class="bubble"></div>
     </div>
-    <div class="loc-card" id="locCard">
-      <span class="loc-pin" id="locPin">📍</span>
-      <div class="loc-text">
-        <div class="loc-addr" id="locAddr">위치를 확인하지 않았습니다.</div>
-        <div class="loc-sub" id="locSub">아래 버튼으로 현재 위치를 가져오거나 직접 설정하세요.</div>
-      </div>
-    </div>
-    <div class="loc-actions">
-      <button type="button" class="secondary-btn" id="locRefetchBtn"><span class="icon">📍</span> 현재 위치 가져오기</button>
-      <button type="button" class="secondary-btn" id="locManualBtn"><span class="icon">⌕</span> 위치 직접 설정</button>
-    </div>
-  </section>
 
-  <div class="filters">
-    <div class="filter-row-text" style="padding-left:2px;">
-      <div class="filter-row-title">검색 반경 선택</div>
-      <div class="filter-row-desc">선택한 반경 안에서만 식당을 찾습니다.</div>
-    </div>
-    <div id="radiusChips" class="chips"></div>
-  </div>
+    <section id="mapPanel" class="sample-map-panel dis-none">
+        <h2>카카오 지도</h2>
+        <p id="mapStatus" class="sample-map-status">결과가 나오면 현재 위치와 추천 식당을 지도에 표시합니다.</p>
+        <div id="resultMap" class="sample-map-canvas"></div>
+        <div id="mapLinkActions" class="map-link-actions">
+            <button id="openNaverBtn" class="secondary-btn naver-map-btn" type="button">네이버지도로 열기</button>
+            <button id="openKakaoBtn" class="secondary-btn kakao-map-btn" type="button">카카오지도로 열기</button>
+        </div>
+    </section>
 
-  <button id="startBtn" class="btn-primary">현재 위치에서 찾기 →</button>
-
-  <div id="bubbleWrap" class="bubble-wrap dis-none">
-    <div id="bubble" class="bubble"></div>
-  </div>
-
-  <section id="mapPanel" class="sample-map-panel dis-none">
-    <h2>카카오 지도</h2>
-    <p id="mapStatus" class="sample-map-status">결과가 나오면 현재 위치와 추천 식당을 지도에 표시합니다.</p>
-    <div id="resultMap" class="sample-map-canvas"></div>
-    <div id="mapLinkActions" class="map-link-actions">
-      <button id="openNaverBtn" class="secondary-btn naver-map-btn" type="button">네이버지도로 열기</button>
-      <button id="openKakaoBtn" class="secondary-btn kakao-map-btn" type="button">카카오지도로 열기</button>
-    </div>
-  </section>
-
-  <footer class="page-footer">
-    <div class="links">
-      <a href="../static/html/about.html">소개</a>
-      <a href="../static/html/contact.html">문의</a>
-      <a href="../static/html/terms.html">이용약관</a>
-      <a href="../static/html/privacy.html">개인정보처리방침</a>
-    </div>
-    <div>© 2025 · RANDOM/SPOT · v1.0</div>
-  </footer>
+    <footer class="page-footer">
+        <div class="links">
+            <a href="../static/html/about.html">소개</a>
+            <a href="../static/html/contact.html">문의</a>
+            <a href="../static/html/terms.html">이용약관</a>
+            <a href="../static/html/privacy.html">개인정보처리방침</a>
+        </div>
+        <div>© 2025 · RANDOM/SPOT · v1.0</div>
+    </footer>
 </div>
 
 <div class="loc-modal-backdrop dis-none" id="locModalBackdrop">
-  <div class="loc-modal" role="dialog" aria-modal="true" aria-labelledby="locModalTitle">
-    <div class="loc-modal-head">
-      <div>
-        <div class="loc-modal-eyebrow">// SET LOCATION</div>
-        <h2 id="locModalTitle">위치 직접 설정</h2>
-      </div>
-      <button type="button" class="loc-modal-close" id="locModalClose" aria-label="닫기">×</button>
+    <div class="loc-modal" role="dialog" aria-modal="true" aria-labelledby="locModalTitle">
+        <div class="loc-modal-head">
+            <div>
+                <div class="loc-modal-eyebrow">// SET LOCATION</div>
+                <h2 id="locModalTitle">위치 직접 설정</h2>
+            </div>
+            <button type="button" class="loc-modal-close" id="locModalClose" aria-label="닫기">×</button>
+        </div>
+        <p class="loc-modal-desc">주소, 지명, 역 이름으로 검색한 뒤 결과에서 기준 위치를 선택하세요.</p>
+        <div class="loc-search-row">
+            <input type="text" id="locModalInput" class="loc-input" inputmode="search" autocomplete="street-address"
+                   placeholder="예: 가산디지털2로 95, 강남역"/>
+            <button type="button" class="secondary-btn" id="locModalSearchBtn">검색</button>
+        </div>
+        <div class="loc-suggest" id="locModalResults"></div>
+        <div class="loc-modal-foot">
+            <button type="button" class="secondary-btn" id="locModalCancel">취소</button>
+            <button type="button" class="btn-primary" id="locModalConfirm">이 위치로 설정 →</button>
+        </div>
     </div>
-    <p class="loc-modal-desc">주소, 지명, 역 이름으로 검색한 뒤 결과에서 기준 위치를 선택하세요.</p>
-    <div class="loc-search-row">
-      <input type="text" id="locModalInput" class="loc-input" inputmode="search" autocomplete="street-address" placeholder="예: 가산디지털2로 95, 강남역" />
-      <button type="button" class="secondary-btn" id="locModalSearchBtn">검색</button>
-    </div>
-    <div class="loc-suggest" id="locModalResults"></div>
-    <div class="loc-modal-foot">
-      <button type="button" class="secondary-btn" id="locModalCancel">취소</button>
-      <button type="button" class="btn-primary" id="locModalConfirm">이 위치로 설정 →</button>
-    </div>
-  </div>
 </div>
 
 <script>
     const SEARCH_ENDPOINT = "/.netlify/functions/kakao-local-restaurant";
     const RADIUS_OPTIONS = [
-        { label: "100m", value: 100 },
-        { label: "500m", value: 500 },
-        { label: "1km", value: 1000 },
-        { label: "3km", value: 3000 }
+        {label: "100m", value: 100},
+        {label: "500m", value: 500},
+        {label: "1km", value: 1000},
+        {label: "3km", value: 3000}
+    ];
+    const NAVER_MENU_NAME_KEYWORDS = [
+        "칼국수", "김밥", "국밥", "분식", "반점", "중식", "중화", "중국집",
+        "횟집", "초밥", "돈까스", "돈가스", "곱창", "족발", "보쌈",
+        "치킨", "피자", "카페", "커피", "냉면", "갈비", "삼겹살",
+        "해장국", "순대국", "감자탕", "찌개", "백반", "곰탕", "설렁탕",
+        "샤브", "마라탕", "쌀국수", "떡볶이", "베이커리", "제과",
+        "토스트", "버거"
     ];
 
     const toast = document.getElementById("toast");
@@ -181,7 +192,7 @@
     let selectedLocation = null;
     let manualSearchResults = [];
     let selectedManualLocation = null;
-    const locState = { mode: "unknown", address: "", sub: "" };
+    const locState = {mode: "unknown", address: "", sub: ""};
 
     function showToast(message) {
         toast.textContent = message;
@@ -466,7 +477,7 @@
     function resetManualSearchResults(message = "검색어를 입력한 뒤 결과를 선택하세요.") {
         manualSearchResults = [];
         selectedManualLocation = null;
-        locModalResults.innerHTML = `<div class="loc-suggest-item" aria-disabled="true">${escapeHtml(message)}</div>`;
+        locModalResults.innerHTML = `<div class="loc-suggest-empty">${escapeHtml(message)}</div>`;
         locModalConfirm.disabled = true;
     }
 
@@ -476,7 +487,7 @@
         locModalConfirm.disabled = true;
 
         if (results.length === 0) {
-            locModalResults.innerHTML = `<div class="loc-suggest-item" aria-disabled="true">검색 결과가 없습니다. 주소나 장소명을 더 구체적으로 입력해 주세요.</div>`;
+            locModalResults.innerHTML = `<div class="loc-suggest-empty">검색 결과가 없습니다. 주소나 장소명을 더 구체적으로 입력해 주세요.</div>`;
             return;
         }
 
@@ -536,6 +547,17 @@
         throw lastError || new Error("RESTAURANT_SEARCH_FAILED");
     }
 
+    function createCurrentLocationMarkerImage(kakao) {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28"><defs><filter id="s" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="1.2" stdDeviation="1.4" flood-opacity=".25"/></filter></defs><circle cx="14" cy="14" r="10" fill="#fff" stroke="rgba(0,0,0,.14)" filter="url(#s)"/><circle cx="14" cy="14" r="5.8" fill="#007aff"/></svg>`;
+        const src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+        const size = new kakao.maps.Size(28, 28);
+        const options = {
+            offset: new kakao.maps.Point(14, 14)
+        };
+
+        return new kakao.maps.MarkerImage(src, size, options);
+    }
+
     function ensureMapInstance() {
         if (mapInstance) {
             return mapInstance;
@@ -555,7 +577,8 @@
 
         currentMarker = new kakao.maps.Marker({
             position: defaultCenter,
-            title: "현재 위치"
+            title: "현재 위치",
+            image: createCurrentLocationMarkerImage(kakao)
         });
         currentMarker.setMap(mapInstance);
 
@@ -621,9 +644,69 @@
         infoWindow.open(map, restaurantMarker);
     }
 
+    function extractNaverSearchArea(address) {
+        const tokens = String(address || "")
+            .replace(/[(),]/g, " ")
+            .split(/\s+/)
+            .filter(Boolean);
+        const dong = tokens.find(token => /(동|읍|면|가|리)$/.test(token));
+        if (dong) {
+            return dong;
+        }
+
+        const district = tokens.find(token => /(구|군|시)$/.test(token));
+        if (district) {
+            return district;
+        }
+
+        const road = tokens.find(token => /(로|길)$/.test(token));
+        return road || "";
+    }
+
+    function extractNaverRoadSearchArea(address) {
+        const tokens = String(address || "")
+            .replace(/[(),]/g, " ")
+            .split(/\s+/)
+            .filter(Boolean);
+        const roadIndex = tokens.findIndex(token => /(로|길)$/.test(token));
+
+        if (roadIndex < 0) {
+            return "";
+        }
+
+        const roadName = tokens[roadIndex];
+        const buildingNumber = tokens[roadIndex + 1] || "";
+        return /^\d+(?:-\d+)?$/.test(buildingNumber) ? `${roadName} ${buildingNumber}` : roadName;
+    }
+
+    function hasExplicitBranchName(title) {
+        const normalizedTitle = String(title || "").trim();
+        return /\s+\S+점$/.test(normalizedTitle) || /(본점|직영점|분점)$/.test(normalizedTitle);
+    }
+
+    function isMenuBasedRestaurantName(title) {
+        const normalizedTitle = String(title || "").replace(/\s+/g, "");
+        return NAVER_MENU_NAME_KEYWORDS.some(keyword => normalizedTitle.includes(keyword));
+    }
+
     function buildNaverQuery(restaurant) {
-        const shortAddress = restaurant.roadAddress || restaurant.address || "";
-        return `${restaurant.title} ${shortAddress}`.trim();
+        const title = String(restaurant.title || "").trim();
+        const roadArea = extractNaverRoadSearchArea(restaurant.roadAddress || restaurant.address);
+
+        if (!title) {
+            return roadArea;
+        }
+
+        if (hasExplicitBranchName(title)) {
+            return title;
+        }
+
+        if (isMenuBasedRestaurantName(title) && roadArea) {
+            return `${title} ${roadArea}`.trim();
+        }
+
+        const searchArea = extractNaverSearchArea(restaurant.address || restaurant.roadAddress);
+        return `${title} ${searchArea}`.trim();
     }
 
     function buildNaverUrls(restaurant) {
@@ -632,7 +715,7 @@
         const appUrl = `nmap://search?query=${encodedQuery}&appname=randomspot.netlify.app`;
         const webUrl = `https://map.naver.com/p/search/${encodedQuery}`;
 
-        return { appUrl, webUrl };
+        return {appUrl, webUrl};
     }
 
     function buildKakaoUrl(restaurant) {
@@ -830,7 +913,7 @@
 
         isResolvingLocation = true;
         setLocationControlsDisabled(true);
-        locModalResults.innerHTML = `<div class="loc-suggest-item" aria-disabled="true">검색 중입니다...</div>`;
+        locModalResults.innerHTML = `<div class="loc-suggest-empty">검색 중입니다...</div>`;
 
         try {
             const results = await searchManualLocations(query);
@@ -915,7 +998,8 @@
         hideMapCanvas();
 
         if (typeof window.loadKakaoMapSdk === "function") {
-            window.loadKakaoMapSdk().catch(() => {});
+            window.loadKakaoMapSdk().catch(() => {
+            });
         }
     });
 </script>
